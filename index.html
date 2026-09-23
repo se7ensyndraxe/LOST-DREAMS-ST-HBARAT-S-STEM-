@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LOST DREAMS İSTİHBARAT SİSTEMİ // SİBER OPERASYON MERKEZİ</title>
+    
     <!-- Leaflet Map CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Google Fonts Monospace -->
@@ -535,14 +536,15 @@
             justify-content: space-between;
         }
 
-        /* Leaflet Dark Customization */
+        /* Leaflet Dark Customization & OSM Filter */
         .leaflet-container {
             background: #010401 !important;
             font-family: var(--font-mono) !important;
         }
 
-        .leaflet-tile {
-            filter: brightness(0.7) invert(1) contrast(1.6) hue-rotate(90deg) saturate(2.5) !important;
+        /* CRITICAL: This turns the standard bright OSM map into a dark tactical green map */
+        .leaflet-tile-pane {
+            filter: invert(100%) sepia(100%) hue-rotate(70deg) saturate(250%) brightness(45%) contrast(150%);
         }
 
         .plane-marker-icon {
@@ -873,10 +875,11 @@
             attributionControl: false
         }).setView([39.0, 35.0], 6);
 
-        // CartoDB Dark Matter Tile Layer
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 18,
-            subdomains: 'abcd'
+        // YENI: Tamamen ucretsiz ve API Key gerektirmeyen OpenStreetMap altlığı.
+        // Bu harita, yukaridaki css (.leaflet-tile-pane) ile taktiksel yesil renge bürünecek.
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
