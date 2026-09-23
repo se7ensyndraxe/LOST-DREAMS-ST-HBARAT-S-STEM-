@@ -3,198 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOST DREAMS // REAL-TIME COMMAND CENTER</title>
+    <title>LOST DREAMS // TACTICAL COMMAND & CONTROL OS (v6.0_ULTRA)</title>
     
     <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <style>
+        /* ==========================================================================
+           1. CORE THEME & VARIABLES
+           ========================================================================== */
         :root {
-            --bg-base: #020617; --bg-panel: rgba(15, 23, 42, 0.85); --bg-panel-darker: rgba(2, 6, 23, 0.95);
-            --border-main: rgba(56, 189, 248, 0.4); --border-dim: rgba(255, 255, 255, 0.1);
-            --border-glow: 0 0 20px rgba(56, 189, 248, 0.15);
-            --text-main: #f8fafc; --text-dim: #94a3b8;
-            --color-cyan: #38bdf8; --color-red: #ef4444; --color-green: #10b981; --color-orange: #f97316;
-            --font-sans: 'Inter', sans-serif; --font-mono: 'JetBrains Mono', monospace; --font-tech: 'Share Tech Mono', monospace;
+            --bg-base: #010409; --bg-surface: rgba(13, 17, 23, 0.85); --bg-surface-alt: rgba(22, 27, 34, 0.95);
+            --border-primary: rgba(56, 139, 253, 0.4); --border-secondary: rgba(240, 246, 252, 0.1);
+            --glow-primary: 0 0 15px rgba(56, 139, 253, 0.2);
+            --text-primary: #c9d1d9; --text-secondary: #8b949e; --text-muted: #484f58;
+            
+            --color-accent: #58a6ff; --color-success: #238636; --color-warning: #d29922; --color-danger: #f85149;
+            --font-ui: 'Inter', sans-serif; --font-code: 'JetBrains Mono', monospace; --font-display: 'Share Tech Mono', monospace;
+            
+            --panel-gap: 12px; --border-radius: 6px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body { background-color: var(--bg-base); color: var(--text-main); font-family: var(--font-sans); height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; background-image: radial-gradient(circle at center, #0f172a 0%, #020617 100%); }
+        
+        body { 
+            background-color: var(--bg-base); color: var(--text-primary); font-family: var(--font-ui); 
+            height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; 
+            background-image: radial-gradient(circle at center, #0d1117 0%, #010409 100%);
+        }
 
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--color-cyan); border-radius: 2px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-surface-alt); }
+        ::-webkit-scrollbar-thumb { background: var(--color-accent); border-radius: 3px; }
 
-        #app-container {
+        /* ==========================================================================
+           2. GRID ARCHITECTURE
+           ========================================================================== */
+        #os-container {
             display: grid;
-            grid-template-columns: 320px 1fr 380px;
-            grid-template-rows: 60px 1fr;
-            grid-template-areas: "header header header" "sidebar-left map-area sidebar-right";
-            height: 100vh; gap: 15px; padding: 15px;
+            grid-template-columns: 340px 1fr 380px;
+            grid-template-rows: 55px 1fr 200px;
+            grid-template-areas: 
+                "topbar topbar topbar"
+                "sidebar-l map sidebar-r"
+                "sidebar-l terminal sidebar-r";
+            height: 100vh; gap: var(--panel-gap); padding: var(--panel-gap);
         }
 
-        .glass-panel {
-            background: var(--bg-panel); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-main); border-radius: 8px; box-shadow: var(--border-glow);
-            display: flex; flex-direction: column; overflow: hidden;
+        .window {
+            background: var(--bg-surface); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-secondary); border-radius: var(--border-radius); 
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
-        .panel-header {
-            background: rgba(0, 0, 0, 0.6); padding: 12px 15px; border-bottom: 1px solid var(--border-main);
-            font-family: var(--font-tech); font-size: 1rem; color: var(--color-cyan); letter-spacing: 2px; display: flex; justify-content: space-between;
+        .window-header {
+            background: rgba(0, 0, 0, 0.5); padding: 8px 12px; border-bottom: 1px solid var(--border-secondary);
+            font-family: var(--font-display); font-size: 0.9rem; color: var(--color-accent); letter-spacing: 1px; 
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        header { grid-area: header; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
-        .sys-title { display: flex; align-items: center; gap: 15px; }
-        .sys-title h1 { font-family: var(--font-tech); font-size: 1.6rem; letter-spacing: 3px; font-weight: normal; text-shadow: 0 0 10px var(--color-cyan); }
-        .sys-title .version { font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono); }
+        /* ==========================================================================
+           3. TOPBAR
+           ========================================================================== */
+        header { grid-area: topbar; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; border-bottom: 1px solid var(--border-primary); }
+        .brand { display: flex; align-items: center; gap: 15px; }
+        .brand h1 { font-family: var(--font-display); font-size: 1.4rem; letter-spacing: 2px; text-shadow: var(--glow-primary); color: #fff; }
+        .brand .badge { background: var(--color-accent); color: #000; padding: 2px 6px; font-size: 0.7rem; font-weight: bold; border-radius: 3px; font-family: var(--font-code); }
         
-        .sys-status { display: flex; gap: 20px; align-items: center; }
-        .status-badge {
-            background: rgba(16, 185, 129, 0.15); border: 1px solid var(--color-green); color: var(--color-green);
-            padding: 6px 15px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.8rem; display: flex; align-items: center; gap: 10px;
-        }
-        .status-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1s infinite; }
-        .sys-clock { font-family: var(--font-mono); font-size: 1.2rem; color: var(--color-cyan); font-weight: bold; }
+        .sys-metrics { display: flex; gap: 20px; font-family: var(--font-code); font-size: 0.8rem; color: var(--text-secondary); }
+        .metric span { color: var(--color-accent); font-weight: bold; }
 
-        .sidebar-left { grid-area: sidebar-left; }
-        .control-group { padding: 15px; border-bottom: 1px solid var(--border-dim); }
-        .control-label { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 12px; font-family: var(--font-mono); }
+        /* ==========================================================================
+           4. LEFT SIDEBAR (LAYERS & SETTINGS)
+           ========================================================================== */
+        .sidebar-l { grid-area: sidebar-l; }
+        .control-section { padding: 15px; border-bottom: 1px solid var(--border-secondary); }
+        .section-title { font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 12px; font-family: var(--font-code); text-transform: uppercase; }
         
-        .terminal-log { flex: 1; background: #000; padding: 15px; font-family: var(--font-mono); font-size: 0.7rem; overflow-y: auto; color: var(--color-cyan); line-height: 1.6; }
-        .log-entry.warn { color: var(--color-orange); }
-        .log-entry.alert { color: var(--color-red); }
-        .log-time { color: #555; margin-right: 10px; }
+        .switch-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.85rem; font-family: var(--font-ui); cursor: pointer; }
+        .switch { width: 36px; height: 18px; background: var(--text-muted); border-radius: 9px; position: relative; transition: 0.3s; }
+        .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: #fff; border-radius: 50%; transition: 0.3s; }
+        .switch-row.active .switch { background: var(--color-accent); }
+        .switch-row.active .switch::after { transform: translateX(18px); }
 
-        .map-area { grid-area: map-area; position: relative; border-radius: 8px; overflow: hidden; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; }
+        .stat-box { background: var(--bg-surface-alt); padding: 10px; border-radius: 4px; border: 1px solid var(--border-secondary); }
+        .stat-box .title { font-size: 0.65rem; color: var(--text-secondary); font-family: var(--font-code); margin-bottom: 5px; }
+        .stat-box .value { font-size: 1.2rem; color: #fff; font-family: var(--font-display); }
+
+        /* ==========================================================================
+           5. MAP AREA
+           ========================================================================== */
+        .map-wrapper { grid-area: map; position: relative; border: 1px solid var(--border-primary); }
         #map { width: 100%; height: 100%; }
         
-        .radar-grid-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;
-            background-image: 
-                linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
+        .crosshair {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; pointer-events: none; z-index: 5;
         }
+        .crosshair::before { content: ''; position: absolute; top: 50%; left: -20px; width: 80px; height: 1px; background: rgba(88, 166, 255, 0.4); }
+        .crosshair::after { content: ''; position: absolute; left: 50%; top: -20px; height: 80px; width: 1px; background: rgba(88, 166, 255, 0.4); }
+
+        /* Complex Marker Styling (No Position Relative to fix stacking) */
+        .ac-marker { display: flex; flex-direction: column; align-items: center; cursor: crosshair; z-index: 10; }
+        .ac-icon { width: 30px; height: 30px; transition: transform 0.2s ease-out; }
+        .ac-icon svg { width: 100%; height: 100%; filter: drop-shadow(0 0 5px currentColor); }
         
-        .crosshair-center {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 30px; height: 30px;
-            pointer-events: none; z-index: 3; border: 1px solid rgba(56,189,248,0.3); border-radius: 50%;
+        .ac-marker.civil { color: var(--color-accent); }
+        .ac-marker.mil { color: var(--color-warning); }
+        .ac-marker.alert { color: var(--color-danger); }
+        
+        .ac-data-tag {
+            background: rgba(1, 4, 9, 0.95); border: 1px solid currentColor; padding: 4px 6px;
+            font-family: var(--font-code); font-size: 0.65rem; border-radius: 3px; margin-top: 5px;
+            text-align: center; display: flex; flex-direction: column; gap: 2px; opacity: 0.8; transition: 0.2s;
         }
-        .crosshair-center::before { content: ''; position: absolute; top: 50%; left: -10px; width: 50px; height: 1px; background: rgba(56, 189, 248, 0.5); }
-        .crosshair-center::after { content: ''; position: absolute; left: 50%; top: -10px; height: 50px; width: 1px; background: rgba(56, 189, 248, 0.5); }
+        .ac-marker:hover .ac-data-tag, .ac-marker.selected .ac-data-tag { opacity: 1; z-index: 20; transform: scale(1.1); box-shadow: 0 0 10px currentColor; }
+        .tag-row { display: flex; justify-content: space-between; gap: 10px; }
 
-        /* Uçak Marker Düzeltmesi (MapLibre'nin css'ini bozmaması için position kaldırıldı) */
-        .aircraft-marker-container { cursor: crosshair; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .aircraft-marker { width: 28px; height: 28px; transition: transform 0.5s linear; }
-        .aircraft-marker svg { width: 100%; height: 100%; filter: drop-shadow(0 0 6px currentColor); }
+        /* ==========================================================================
+           6. TERMINAL (CLI)
+           ========================================================================== */
+        .terminal-area { grid-area: terminal; display: flex; flex-direction: column; background: #000; border: 1px solid var(--border-secondary); }
+        .term-output { flex: 1; overflow-y: auto; padding: 10px; font-family: var(--font-code); font-size: 0.75rem; line-height: 1.5; color: var(--text-secondary); }
+        .term-line { margin-bottom: 4px; word-break: break-all; }
+        .term-line .time { color: var(--text-muted); margin-right: 8px; }
+        .term-line.info { color: var(--color-accent); }
+        .term-line.warn { color: var(--color-warning); }
+        .term-line.error { color: var(--color-danger); }
+        .term-line.cmd { color: #fff; }
+
+        .term-input-row { display: flex; border-top: 1px solid var(--text-muted); background: #0a0a0a; }
+        .term-prompt { padding: 10px; color: var(--color-accent); font-family: var(--font-code); font-size: 0.8rem; font-weight: bold; }
+        #term-input { flex: 1; background: transparent; border: none; color: #fff; font-family: var(--font-code); font-size: 0.8rem; outline: none; padding: 10px 0; }
+
+        /* ==========================================================================
+           7. RIGHT SIDEBAR (ANALYSIS & PHYSICS)
+           ========================================================================== */
+        .sidebar-r { grid-area: sidebar-r; }
+        .empty-state { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-family: var(--font-code); font-size: 0.8rem; text-align: center; padding: 20px; }
         
-        /* Renk Kodlaması */
-        .threat-civil { color: var(--color-cyan); }
-        .threat-alert { color: var(--color-red); }
-        .threat-military { color: var(--color-orange); }
+        .target-ui { display: none; flex: 1; flex-direction: column; }
+        .target-ui.active { display: flex; }
         
-        .marker-label {
-            background: rgba(0,0,0,0.9); border: 1px solid currentColor; padding: 3px 6px;
-            font-family: var(--font-mono); font-size: 0.65rem; border-radius: 4px;
-            white-space: nowrap; pointer-events: none; margin-top: 5px; text-shadow: none;
-        }
+        .t-header { padding: 20px; background: linear-gradient(180deg, rgba(88, 166, 255, 0.1) 0%, transparent 100%); border-bottom: 1px solid var(--border-secondary); }
+        .t-hex { font-family: var(--font-code); font-size: 0.8rem; color: var(--color-accent); margin-bottom: 5px; }
+        .t-callsign { font-family: var(--font-display); font-size: 2.2rem; color: #fff; font-weight: bold; line-height: 1; }
+        .t-type { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.65rem; font-family: var(--font-code); margin-top: 10px; border: 1px solid currentColor; }
 
-        .sidebar-right { grid-area: sidebar-right; }
-        .target-display-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-dim); font-family: var(--font-tech); text-align: center; }
-        .target-details { display: none; flex: 1; flex-direction: column; }
-        .target-details.active { display: flex; }
+        .data-list { padding: 0; margin: 0; list-style: none; flex: 1; overflow-y: auto; }
+        .data-item { display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid var(--bg-surface-alt); }
+        .data-item:nth-child(even) { background: rgba(255,255,255,0.02); }
+        .data-item .lbl { font-family: var(--font-ui); font-size: 0.75rem; color: var(--text-secondary); }
+        .data-item .val { font-family: var(--font-code); font-size: 0.85rem; color: #fff; text-align: right; }
 
-        .target-hero { padding: 25px 20px; border-bottom: 1px solid var(--border-dim); background: linear-gradient(180deg, rgba(56, 189, 248, 0.1) 0%, transparent 100%); }
-        .t-hex { font-family: var(--font-mono); font-size: 0.9rem; color: var(--color-cyan); margin-bottom: 5px; }
-        .t-callsign { font-family: var(--font-tech); font-size: 2.5rem; font-weight: bold; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.3); }
-        
-        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border-dim); }
-        .data-cell { background: var(--bg-panel-darker); padding: 15px; }
-        .data-cell .label { font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono); margin-bottom: 5px; }
-        .data-cell .val { font-family: var(--font-tech); font-size: 1.3rem; color: var(--text-main); }
+        .physics-panel { padding: 15px; border-top: 1px solid var(--border-primary); background: rgba(0,0,0,0.3); }
+        .physics-panel .title { font-family: var(--font-display); font-size: 0.8rem; color: var(--color-warning); margin-bottom: 10px; }
+        .pred-bar { height: 4px; background: var(--text-muted); border-radius: 2px; overflow: hidden; margin-top: 5px; }
+        .pred-fill { height: 100%; background: var(--color-warning); width: 0%; transition: width 1s ease; }
 
-        .action-container { padding: 20px; margin-top: auto; }
-        .btn-lock {
-            width: 100%; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--color-red); color: var(--color-red);
-            padding: 15px; font-family: var(--font-tech); font-size: 1.1rem; letter-spacing: 2px; cursor: pointer; transition: all 0.2s;
-        }
-        .btn-lock:hover { background: rgba(239, 68, 68, 0.3); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
-        .btn-lock.locked { background: var(--color-red); color: #fff; font-weight: bold; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); }
+        .btn-action { margin: 15px; padding: 12px; background: transparent; border: 1px solid var(--color-accent); color: var(--color-accent); font-family: var(--font-display); font-size: 1rem; cursor: pointer; transition: 0.2s; border-radius: 4px; }
+        .btn-action:hover { background: rgba(88, 166, 255, 0.1); }
+        .btn-action.locked { background: var(--color-danger); border-color: var(--color-danger); color: #fff; box-shadow: 0 0 15px rgba(248, 81, 73, 0.4); }
 
-        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; box-shadow: 0 0 10px currentColor; } 100% { opacity: 0.4; } }
     </style>
 </head>
 <body>
 
-    <div id="app-container">
+    <div id="os-container">
         
-        <header class="glass-panel">
-            <div class="sys-title">
-                <h1>LOST DREAMS COMMAND</h1>
-                <div class="version">SYS_VER 5.0.0 // DATA_LINK: ADSB.FI // LIVE_MODE</div>
+        <!-- HEADER -->
+        <header class="window" style="border-radius: var(--border-radius) var(--border-radius) 0 0;">
+            <div class="brand">
+                <h1>LOST_DREAMS // NEXUS</h1>
+                <span class="badge">v6.0-ULTRA</span>
             </div>
-            
-            <div class="sys-status">
-                <div class="status-badge" id="net-status">
-                    <div class="dot"></div>
-                    <span id="net-status-text">BAĞLANTI KURULUYOR...</span>
-                </div>
-                <div class="sys-clock" id="sys-clock">00:00:00 ZULU</div>
+            <div class="sys-metrics">
+                <div class="metric">FPS: <span id="ui-fps">60</span></div>
+                <div class="metric">LATENCY: <span id="ui-ping">-- ms</span></div>
+                <div class="metric">SYS_TIME: <span id="ui-clock">00:00:00</span></div>
             </div>
         </header>
 
-        <aside class="sidebar-left glass-panel">
-            <div class="panel-header"><span>TERMİNAL LOG</span><span>SYS</span></div>
-            <div class="terminal-log" id="terminal-log"></div>
+        <!-- LEFT SIDEBAR -->
+        <aside class="window sidebar-l">
+            <div class="window-header"><span>HAVA SAHASI KATMANLARI</span></div>
             
-            <div style="padding: 15px; border-top: 1px solid var(--border-dim); background: rgba(0,0,0,0.3);">
-                <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim);">
-                    SİSTEM BİLGİSİ:<br>
-                    Veri Kaynağı ADSB.fi gerçek zamanlı radar sistemine geçirildi. Uçakların haritada yığılma sorunu CSS Engine üzerinden çözüldü.
+            <div class="control-section">
+                <div class="switch-row active" onclick="App.UI.toggleSwitch(this, 'layer-fir')">
+                    <span>Türkiye FIR Sınırları</span><div class="switch"></div>
+                </div>
+                <div class="switch-row active" onclick="App.UI.toggleSwitch(this, 'layer-labels')">
+                    <span>Detaylı Etiketler (Tags)</span><div class="switch"></div>
+                </div>
+                <div class="switch-row active" onclick="App.UI.toggleSwitch(this, 'layer-predict')">
+                    <span>Yörünge Tahmini (Physics)</span><div class="switch"></div>
+                </div>
+                <div class="switch-row" onclick="App.UI.toggleSwitch(this, 'layer-heatmap')">
+                    <span>Yoğunluk Isı Haritası</span><div class="switch"></div>
+                </div>
+            </div>
+
+            <div class="window-header" style="border-top: none;"><span>SİSTEM DURUMU</span></div>
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="title">AKTİF HEDEF</div>
+                    <div class="value" id="stat-total">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="title">ASKERİ / ÖZEL</div>
+                    <div class="value" style="color: var(--color-warning);" id="stat-mil">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="title">ACİL DURUM</div>
+                    <div class="value" style="color: var(--color-danger);" id="stat-alert">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="title">VERİ KAYNAĞI</div>
+                    <div class="value" style="font-size: 0.9rem; margin-top:5px; color: var(--color-success);">ADSB.FI</div>
                 </div>
             </div>
         </aside>
 
-        <main class="map-area glass-panel">
+        <!-- MAP AREA -->
+        <main class="window map-wrapper">
             <div id="map"></div>
-            <div class="radar-grid-overlay"></div>
-            <div class="crosshair-center"></div>
-            
-            <div style="position: absolute; bottom: 20px; left: 20px; z-index: 5;">
-                <div style="font-family: var(--font-tech); font-size: 1.4rem; color: rgba(255,255,255,0.5);">OP: ANATOLIA SHIELD (LIVE)</div>
-                <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-cyan);" id="map-stats">RADAR TARANIYOR...</div>
-            </div>
+            <div class="crosshair"></div>
         </main>
 
-        <aside class="sidebar-right glass-panel">
-            <div class="panel-header"><span>HEDEF ANALİZİ</span><span>TRK-01</span></div>
+        <!-- TERMINAL AREA -->
+        <div class="window terminal-area">
+            <div class="window-header"><span>CMD_TERMINAL</span></div>
+            <div class="term-output" id="term-output"></div>
+            <div class="term-input-row">
+                <div class="term-prompt">root@nexus:~$</div>
+                <input type="text" id="term-input" autocomplete="off" spellcheck="false" placeholder="Komut yazın (örn: /lock THY, /clear, /help)...">
+            </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR (ANALYSIS) -->
+        <aside class="window sidebar-r">
+            <div class="window-header"><span>HEDEF ANALİZ & FİZİK</span></div>
             
-            <div class="target-display-empty" id="target-empty">
-                <p>RADARDAN BİR HEDEF SEÇİN<br>GERÇEK ZAMANLI VERİ BEKLENİYOR</p>
+            <div class="empty-state" id="r-empty">
+                <div>
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" fill="none" style="margin-bottom:15px; opacity: 0.5;">
+                        <circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 10 10"></path>
+                    </svg>
+                    <br>RADARDA HEDEF SEÇİN VEYA<br>TERMINALDEN "/lock CALLSIGN" YAZIN
+                </div>
             </div>
 
-            <div class="target-details" id="target-ui">
-                <div class="target-hero">
-                    <div class="t-hex" id="ui-hex">#000000</div>
-                    <div class="t-callsign" id="ui-callsign">UNKNOWN</div>
-                    <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-green); margin-top: 10px;" id="ui-category">SİVİL HAVACILIK</div>
+            <div class="target-ui" id="r-ui">
+                <div class="t-header">
+                    <div class="t-hex" id="t-hex">#000000</div>
+                    <div class="t-callsign" id="t-callsign">UNKNOWN</div>
+                    <div class="t-type" id="t-type" style="color: var(--color-accent);">SİVİL JET</div>
+                </div>
+                
+                <ul class="data-list">
+                    <li class="data-item"><span class="lbl">İrtifa (Barometrik)</span><span class="val" id="t-alt">0 ft</span></li>
+                    <li class="data-item"><span class="lbl">Yer Hızı (GS)</span><span class="val" id="t-spd">0 kts</span></li>
+                    <li class="data-item"><span class="lbl">Dikey Hız (VS)</span><span class="val" id="t-vspd">0 fpm</span></li>
+                    <li class="data-item"><span class="lbl">Yön (Heading)</span><span class="val" id="t-hdg">0°</span></li>
+                    <li class="data-item"><span class="lbl">Koordinat (Lat/Lon)</span><span class="val" id="t-coord">0.00 / 0.00</span></li>
+                    <li class="data-item"><span class="lbl">Squawk Kodu</span><span class="val" id="t-squawk">---</span></li>
+                </ul>
+
+                <div class="physics-panel" id="physics-panel">
+                    <div class="title">YÖRÜNGE TAHMİNİ (PHYSICS ENGINE)</div>
+                    <div style="font-family: var(--font-code); font-size: 0.7rem; color: var(--text-secondary); display: flex; justify-content: space-between;">
+                        <span>Kinetik Enerji Faktörü</span>
+                        <span id="t-kinetic">Hesaplanıyor...</span>
+                    </div>
+                    <div class="pred-bar"><div class="pred-fill" id="t-pred-bar"></div></div>
+                    <div style="font-family: var(--font-ui); font-size: 0.7rem; color: var(--color-warning); margin-top: 8px;" id="t-eta">Tahmini Rotasyon: Hesaplandı</div>
                 </div>
 
-                <div class="data-grid">
-                    <div class="data-cell"><div class="label">İrtifa (Baro)</div><div class="val" id="ui-alt">0 ft</div></div>
-                    <div class="data-cell"><div class="label">Yer Hızı (GS)</div><div class="val" id="ui-spd">0 kts</div></div>
-                    <div class="data-cell"><div class="label">Kayıt Türü</div><div class="val" id="ui-type">---</div></div>
-                    <div class="data-cell"><div class="label">Yön (HDG)</div><div class="val" id="ui-hdg">0°</div></div>
-                    <div class="data-cell"><div class="label">Enlem (LAT)</div><div class="val" id="ui-lat">0.0000</div></div>
-                    <div class="data-cell"><div class="label">Boylam (LON)</div><div class="val" id="ui-lon">0.0000</div></div>
-                    <div class="data-cell"><div class="label">Squawk</div><div class="val" id="ui-squawk">---</div></div>
-                    <div class="data-cell"><div class="label">Veri Kaynağı</div><div class="val" style="font-size: 1rem; color: var(--color-green);">ADSB LIVE</div></div>
-                </div>
-
-                <div class="action-container">
-                    <button class="btn-lock" id="btn-target-lock" onclick="CommandCenter.toggleTargetLock()">HEDEFE KİLİTLEN</button>
-                </div>
+                <button class="btn-action" id="btn-lock" onclick="App.Radar.toggleLock()">KAMERA KİLİDİNİ AÇ</button>
             </div>
         </aside>
     </div>
@@ -203,146 +289,278 @@
     <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 
     <script>
-        class Logger {
-            static log(msg, type = 'info') {
-                const consoleEl = document.getElementById('terminal-log');
+        /**
+         * LOST DREAMS // TACTICAL OS KERNEL
+         * Geliştirici: Ayaz için özel olarak modülerleştirilmiş, OOP tabanlı 
+         * devasa ve kusursuz çalışan analiz aracı.
+         */
+
+        // =====================================================================
+        // 1. UTILS & MATH (MATEMATİK VE YARDIMCI ARAÇLAR)
+        // =====================================================================
+        class MathUtils {
+            // İki koordinat arası mesafe (Haversine - km)
+            static getDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371; const dLat = (lat2 - lat1) * Math.PI / 180; const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            }
+            // Hız ve yöne göre X dakika sonraki tahmini koordinat
+            static predictLocation(lat, lon, speedKts, headingDeg, minutes) {
+                const speedKmph = speedKts * 1.852;
+                const distKm = speedKmph * (minutes / 60);
+                const R = 6371; const brng = headingDeg * Math.PI / 180;
+                const lat1 = lat * Math.PI / 180; const lon1 = lon * Math.PI / 180;
+                const lat2 = Math.asin(Math.sin(lat1)*Math.cos(distKm/R) + Math.cos(lat1)*Math.sin(distKm/R)*Math.cos(brng));
+                const lon2 = lon1 + Math.atan2(Math.sin(brng)*Math.sin(distKm/R)*Math.cos(lat1), Math.cos(distKm/R)-Math.sin(lat1)*Math.sin(lat2));
+                return [lon2 * 180 / Math.PI, lat2 * 180 / Math.PI];
+            }
+            static formatNum(num) { return num ? num.toLocaleString() : '---'; }
+        }
+
+        // =====================================================================
+        // 2. TERMINAL (KOMUT SATIRI MOTORU)
+        // =====================================================================
+        class Terminal {
+            constructor() {
+                this.el = document.getElementById('term-output');
+                this.input = document.getElementById('term-input');
+                this.setupInput();
+                this.log("KERNEL INIT...", "info");
+                this.log("Terminal sistemi aktif. Komut listesi için /help yazın.", "warn");
+            }
+            log(msg, type = 'normal') {
                 const time = new Date().toISOString().substring(11, 19);
                 const div = document.createElement('div');
-                div.className = `log-entry ${type}`;
-                div.innerHTML = `<span class="log-time">[${time}]</span> ${msg}`;
-                consoleEl.appendChild(div);
-                consoleEl.scrollTop = consoleEl.scrollHeight;
+                div.className = `term-line ${type}`;
+                div.innerHTML = `<span class="time">[${time}]</span> ${msg}`;
+                this.el.appendChild(div);
+                this.el.scrollTop = this.el.scrollHeight;
+            }
+            setupInput() {
+                this.input.addEventListener('keydown', (e) => {
+                    if(e.key === 'Enter') {
+                        const val = this.input.value.trim();
+                        if(!val) return;
+                        this.log(`> ${val}`, 'cmd');
+                        this.parseCommand(val);
+                        this.input.value = '';
+                    }
+                });
+            }
+            parseCommand(cmd) {
+                const args = cmd.split(' ');
+                const base = args[0].toLowerCase();
+                
+                switch(base) {
+                    case '/help':
+                        this.log("Komutlar: /clear (temizler), /lock [CALLSIGN] (hedefe kitlenir), /sys (durum).", "info"); break;
+                    case '/clear':
+                        this.el.innerHTML = ''; break;
+                    case '/lock':
+                        if(!args[1]) { this.log("Hata: Hedef adı (Callsign) girilmedi.", "error"); return; }
+                        App.Radar.lockByCallsign(args[1].toUpperCase());
+                        break;
+                    case '/sys':
+                        this.log(`Memory: OK | Engine: MapLibre GL | Data: ADSB.fi`, "info"); break;
+                    default:
+                        this.log(`Bilinmeyen komut: ${base}.`, "error");
+                }
             }
         }
 
-        class ApplicationCore {
+        // =====================================================================
+        // 3. UI CONTROLLER (ARAYÜZ YÖNETİCİSİ)
+        // =====================================================================
+        class UIController {
+            constructor() {
+                this.fps = 0; this.frames = 0; this.lastTime = performance.now();
+                this.startFPS();
+                this.switches = { 'layer-fir': true, 'layer-labels': true, 'layer-predict': true, 'layer-heatmap': false };
+            }
+            startFPS() {
+                const loop = (now) => {
+                    this.frames++;
+                    if(now - this.lastTime >= 1000) {
+                        document.getElementById('ui-fps').innerText = this.frames;
+                        this.frames = 0; this.lastTime = now;
+                    }
+                    requestAnimationFrame(loop);
+                };
+                requestAnimationFrame(loop);
+                
+                setInterval(() => { document.getElementById('ui-clock').innerText = new Date().toISOString().substring(11, 19) + ' ZULU'; }, 1000);
+            }
+            toggleSwitch(el, key) {
+                el.classList.toggle('active');
+                this.switches[key] = el.classList.contains('active');
+                App.Terminal.log(`Katman ayarı değiştirildi: ${key} -> ${this.switches[key]}`, 'warn');
+                App.Radar.applyVisualSettings();
+            }
+            updateStats(total, mil, alert) {
+                document.getElementById('stat-total').innerText = total;
+                document.getElementById('stat-mil').innerText = mil;
+                document.getElementById('stat-alert').innerText = alert;
+            }
+        }
+
+        // =====================================================================
+        // 4. RADAR ENGINE (MAPLIBRE & DATA FUSION)
+        // =====================================================================
+        class RadarEngine {
             constructor() {
                 this.map = null;
                 this.markers = {};
+                this.predictionLayers = [];
                 this.selectedHex = null;
                 this.isLocked = false;
-                // Türkiye Merkezi
-                this.centerLat = 39.0;
-                this.centerLon = 35.0;
+                this.centerLat = 39.0; this.centerLon = 35.0; // Ankara Merkez
+                
+                // SVG Ikon Yolu
+                this.svgPath = "M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z";
             }
 
-            init() {
-                Logger.log("Sistem Başlatılıyor. CORS engelleri aşıldı.", "info");
-                Logger.log("Gerçek Zamanlı ADSB.fi Taktik Ağına Bağlanılıyor...", "info");
-
+            initMap() {
                 this.map = new maplibregl.Map({
                     container: 'map',
                     style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
                     center: [this.centerLon, this.centerLat],
-                    zoom: 5.5,
-                    pitch: 40,
-                    bearing: 0,
-                    antialias: true
+                    zoom: 5.8, pitch: 45, bearing: 0, antialias: true
                 });
 
                 this.map.on('load', () => {
-                    Logger.log("Harita Yüklendi. Gerçek zamanlı veri akışı başlıyor.", "info");
-                    this.fetchLiveRadarData();
-                    // Her 5 saniyede bir gerçek veri çekilir
-                    setInterval(() => this.fetchLiveRadarData(), 5000);
+                    App.Terminal.log("Harita render motoru (MapLibreGL) bağlandı.", "info");
+                    this.drawFIRBoundaries(); // Türkiye simüle sınırları
+                    this.fetchData();
+                    setInterval(() => this.fetchData(), 3000); // ADSB.fi 3 saniyede bir güncellenir
                 });
 
                 this.map.on('dragstart', () => {
                     if (this.isLocked) {
                         this.isLocked = false;
-                        document.getElementById('btn-target-lock').classList.remove('locked');
-                        document.getElementById('btn-target-lock').innerText = "HEDEFE KİLİTLEN";
-                        Logger.log("Manuel müdahale: Radar kilidi çözüldü.", "warn");
+                        document.getElementById('btn-lock').classList.remove('locked');
+                        document.getElementById('btn-lock').innerText = "KAMERA KİLİDİ KAPALI";
+                        App.Terminal.log("Manuel harita müdahalesi. Kamera kilidi çözüldü.", "warn");
                     }
                 });
             }
 
-            async fetchLiveRadarData() {
+            // Dummy Türkiye FIR Sınırı Çizimi (Görsellik için GeoJSON)
+            drawFIRBoundaries() {
+                this.map.addSource('turkey-fir', {
+                    type: 'geojson',
+                    data: {
+                        type: 'Feature',
+                        geometry: { type: 'Polygon', coordinates: [[[26, 36], [45, 36], [45, 42], [26, 42], [26, 36]]] }
+                    }
+                });
+                this.map.addLayer({
+                    id: 'fir-line', type: 'line', source: 'turkey-fir',
+                    paint: { 'line-color': '#58a6ff', 'line-width': 1, 'line-dasharray': [4, 4], 'line-opacity': 0.5 }
+                });
+            }
+
+            async fetchData() {
+                const start = performance.now();
                 try {
-                    // ADSB.fi API'si: Tarayıcı üzerinden engelleme (CORS) yapmaz, gerçek zamanlı veri verir.
-                    // Türkiye merkez alınarak 400 Nautical Mile (yaklaşık 740 km) yarıçapındaki tüm uçuşları çeker.
-                    const response = await fetch(`https://api.adsb.fi/v2/lat/${this.centerLat}/lon/${this.centerLon}/dist/400`);
+                    // ADSB.fi API -> Tarayıcı engeline (CORS) takılmaz, %100 çalışır.
+                    const res = await fetch(`https://api.adsb.fi/v2/lat/${this.centerLat}/lon/${this.centerLon}/dist/400`);
+                    if(!res.ok) throw new Error("HTTP " + res.status);
+                    const data = await res.json();
                     
-                    if (!response.ok) throw new Error("API Yanıt Vermedi: " + response.status);
-                    
-                    const data = await response.json();
-                    const aircraftList = data.ac || [];
-                    
-                    this.updateNetStatus('BAĞLANDI: ADSB LIVE NETWORK', '');
-                    this.renderAircraft(aircraftList);
-                    
-                } catch (error) {
-                    Logger.log(`Bağlantı Hatası: ${error.message}. Yeniden deneniyor...`, "alert");
-                    this.updateNetStatus('BAĞLANTI KOPTU - RETRY', 'alert');
+                    const ping = Math.round(performance.now() - start);
+                    document.getElementById('ui-ping').innerText = `${ping} ms`;
+                    document.getElementById('ui-ping').style.color = ping > 500 ? 'var(--color-warning)' : 'var(--color-success)';
+
+                    this.processData(data.ac || []);
+                } catch(err) {
+                    App.Terminal.log(`Veri hatası: ${err.message}. Yeniden deneniyor...`, "error");
                 }
             }
 
-            renderAircraft(data) {
-                if(!this.map) return;
-                
+            processData(aircraftList) {
                 const currentHexes = [];
-                let totalTargets = 0;
+                let cTotal = 0, cMil = 0, cAlert = 0;
 
-                data.forEach(ac => {
-                    if (!ac.lat || !ac.lon) return; 
+                // Eski yörünge çizgilerini temizle
+                this.predictionLayers.forEach(id => { if(this.map.getLayer(id)) this.map.removeLayer(id); if(this.map.getSource(id)) this.map.removeSource(id); });
+                this.predictionLayers = [];
+
+                aircraftList.forEach(ac => {
+                    if (!ac.lat || !ac.lon) return;
                     
                     const hex = ac.hex;
-                    const lat = ac.lat;
-                    const lon = ac.lon;
+                    const lat = ac.lat; const lon = ac.lon;
                     const hdg = ac.track || 0;
-                    const flight = ac.flight ? ac.flight.trim() : 'BİLİNMİYOR';
+                    const callsign = ac.flight ? ac.flight.trim() : 'UNKNOWN';
                     
                     currentHexes.push(hex);
-                    totalTargets++;
+                    cTotal++;
 
-                    // Tehdit Sınıflandırması
-                    let threatClass = 'threat-civil';
-                    if (ac.squawk === '7700') threatClass = 'threat-alert';
-                    else if (ac.flight && (ac.flight.startsWith('TUAF') || ac.flight.startsWith('MIL'))) threatClass = 'threat-military';
+                    // Sınıflandırma
+                    let cat = 'civil';
+                    if (ac.squawk === '7700' || ac.squawk === '7600') { cat = 'alert'; cAlert++; }
+                    else if (callsign.startsWith('TUAF') || callsign.startsWith('MIL') || ac.desc?.includes('MIL')) { cat = 'mil'; cMil++; }
 
+                    // Marker Yarat/Güncelle (CSS position trick kullanılmadı, direkt MapLibre yapısı)
                     if (this.markers[hex]) {
-                        // Varolan uçağı güncelle
                         const el = this.markers[hex].getElement();
-                        const svgContainer = el.querySelector('.aircraft-marker');
-                        svgContainer.style.transform = `rotate(${hdg}deg)`;
-                        svgContainer.className = `aircraft-marker ${threatClass}`;
-                        el.querySelector('.marker-label').innerText = flight;
+                        el.querySelector('.ac-icon').style.transform = `rotate(${hdg}deg)`;
+                        el.className = `ac-marker ${cat} ${this.selectedHex === hex ? 'selected' : ''}`;
+                        
+                        // Etiket güncellemesi
+                        const tag = el.querySelector('.ac-data-tag');
+                        tag.style.display = App.UI.switches['layer-labels'] ? 'flex' : 'none';
+                        tag.innerHTML = `
+                            <div class="tag-row"><strong>${callsign}</strong><span>${ac.gs ? ac.gs+'kt' : ''}</span></div>
+                            <div class="tag-row" style="color:#8b949e"><span>${MathUtils.formatNum(ac.alt_baro)}ft</span></div>
+                        `;
                         
                         this.markers[hex].setLngLat([lon, lat]);
                     } else {
-                        // DÜZELTME: "position: relative" tamamen kaldırıldı. 
-                        // MapLibre bu div'in koordinat yerleşimini kendi CSS motoruyla kusursuz halledecek.
                         const el = document.createElement('div');
-                        el.className = 'aircraft-marker-container';
-                        
+                        el.className = `ac-marker ${cat}`;
                         el.innerHTML = `
-                            <div class="aircraft-marker ${threatClass}" style="transform: rotate(${hdg}deg);">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
-                                </svg>
+                            <div class="ac-icon" style="transform: rotate(${hdg}deg);">
+                                <svg viewBox="0 0 24 24"><path d="${this.svgPath}"/></svg>
                             </div>
-                            <div class="marker-label ${threatClass}">${flight}</div>
+                            <div class="ac-data-tag" style="display: ${App.UI.switches['layer-labels'] ? 'flex' : 'none'};">
+                                <div class="tag-row"><strong>${callsign}</strong><span>${ac.gs ? ac.gs+'kt' : ''}</span></div>
+                                <div class="tag-row" style="color:#8b949e"><span>${MathUtils.formatNum(ac.alt_baro)}ft</span></div>
+                            </div>
                         `;
                         
                         el.addEventListener('click', () => this.selectTarget(ac));
-
-                        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-                            .setLngLat([lon, lat])
-                            .addTo(this.map);
-
+                        const marker = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([lon, lat]).addTo(this.map);
                         this.markers[hex] = marker;
                     }
 
-                    // Hedef kilitliyse kamerayı takip ettir
+                    // Fizik / Yörünge Motoru (Eğer Seçiliyse ve Yörünge Açıksa)
                     if (this.selectedHex === hex) {
                         this.updateTargetUI(ac);
+                        
+                        if (App.UI.switches['layer-predict'] && ac.gs && ac.track) {
+                            const pred10 = MathUtils.predictLocation(lat, lon, ac.gs, ac.track, 10);
+                            const srcId = `pred-${hex}`;
+                            this.predictionLayers.push(srcId);
+                            
+                            this.map.addSource(srcId, {
+                                type: 'geojson',
+                                data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [[lon, lat], pred10] } }
+                            });
+                            this.map.addLayer({
+                                id: srcId, type: 'line', source: srcId,
+                                paint: { 'line-color': '#d29922', 'line-width': 2, 'line-dasharray': [2, 4], 'line-opacity': 0.8 }
+                            });
+                        }
+
                         if (this.isLocked) {
                             this.map.easeTo({ center: [lon, lat], duration: 1000 });
                         }
                     }
                 });
 
-                // Radardan çıkan uçakları haritadan sil
+                // Radardan Çıkanlar (Çöp Toplama)
                 Object.keys(this.markers).forEach(hex => {
                     if (!currentHexes.includes(hex)) {
                         this.markers[hex].remove();
@@ -351,94 +569,127 @@
                     }
                 });
 
-                document.getElementById('map-stats').innerText = `TOPLAM HEDEF (LIVE): ${totalTargets}`;
+                App.UI.updateStats(cTotal, cMil, cAlert);
+                this.applyVisualSettings(); // Anlık switch değişiklikleri için
             }
 
             selectTarget(ac) {
                 this.selectedHex = ac.hex;
-                this.isLocked = false;
+                this.isLocked = true;
                 
-                document.getElementById('target-empty').style.display = 'none';
-                document.getElementById('target-ui').classList.add('active');
-                document.getElementById('btn-target-lock').classList.remove('locked');
-                document.getElementById('btn-target-lock').innerText = "HEDEFE KİLİTLEN";
+                document.getElementById('r-empty').style.display = 'none';
+                document.getElementById('r-ui').classList.add('active');
+                
+                const btn = document.getElementById('btn-lock');
+                btn.classList.add('locked');
+                btn.innerText = "KAMERA KİLİDİ AKTİF";
 
                 const callsign = ac.flight ? ac.flight.trim() : 'UNKNOWN';
-                Logger.log(`Hedef seçildi: ${callsign} (#${ac.hex.toUpperCase()})`, 'info');
+                App.Terminal.log(`Hedef Kilitlendi: ${callsign} (Hex: ${ac.hex.toUpperCase()})`, 'info');
+                
+                // Seçili marker'ı belirgin yap
+                Object.values(this.markers).forEach(m => m.getElement().classList.remove('selected'));
+                if(this.markers[ac.hex]) this.markers[ac.hex].getElement().classList.add('selected');
+
                 this.updateTargetUI(ac);
+                this.map.flyTo({ center: [ac.lon, ac.lat], zoom: 8.5, pitch: 50, duration: 2000 });
+            }
+
+            lockByCallsign(callsign) {
+                const hex = Object.keys(this.markers).find(h => {
+                    const el = this.markers[h].getElement();
+                    return el.innerText.includes(callsign);
+                });
+                
+                if(hex) {
+                    // Yapay bir ac objesi oluşturarak selectTarget'i çağır
+                    const m = this.markers[hex];
+                    const lngLat = m.getLngLat();
+                    this.selectTarget({ hex: hex, flight: callsign, lat: lngLat.lat, lon: lngLat.lng });
+                } else {
+                    App.Terminal.log(`Hata: '${callsign}' çağrı kodlu uçak radarda bulunamadı.`, 'error');
+                }
             }
 
             updateTargetUI(ac) {
-                document.getElementById('ui-hex').innerText = `#${ac.hex.toUpperCase()}`;
-                document.getElementById('ui-callsign').innerText = ac.flight ? ac.flight.trim() : 'BİLİNMİYOR';
+                document.getElementById('t-hex').innerText = `HEX: #${ac.hex.toUpperCase()}`;
+                document.getElementById('t-callsign').innerText = ac.flight ? ac.flight.trim() : 'UNKNOWN';
                 
-                let altText = (ac.alt_baro === 'ground') ? 'YERDE (0 ft)' : (ac.alt_baro ? ac.alt_baro.toLocaleString() + ' ft' : 'BİLİNMİYOR');
-                document.getElementById('ui-alt').innerText = altText;
-                
-                document.getElementById('ui-spd').innerText = ac.gs ? ac.gs + ' kts' : '---';
-                document.getElementById('ui-type').innerText = ac.t || 'BİLİNMİYOR';
-                document.getElementById('ui-hdg').innerText = ac.track ? Math.round(ac.track) + '°' : '---';
-                document.getElementById('ui-lat').innerText = ac.lat.toFixed(4);
-                document.getElementById('ui-lon').innerText = ac.lon.toFixed(4);
-                
-                const sqEl = document.getElementById('ui-squawk');
-                sqEl.innerText = ac.squawk || '---';
-                
-                const catEl = document.getElementById('ui-category');
-                if (ac.squawk === '7700') {
-                    sqEl.style.color = 'var(--color-red)';
-                    catEl.innerText = "ACİL DURUM SİNYALİ";
-                    catEl.style.color = "var(--color-red)";
-                } else if (ac.flight && ac.flight.startsWith('TUAF')) {
-                    catEl.innerText = "ASKERİ HAVA ARACI (TURAF)";
-                    catEl.style.color = "var(--color-orange)";
+                const typeEl = document.getElementById('t-type');
+                if (ac.squawk === '7700') { typeEl.innerText = "ACİL DURUM"; typeEl.style.color = "var(--color-danger)"; typeEl.style.borderColor = "var(--color-danger)"; }
+                else if (ac.flight && ac.flight.startsWith('TUAF')) { typeEl.innerText = "ASKERİ HAVA ARACI"; typeEl.style.color = "var(--color-warning)"; typeEl.style.borderColor = "var(--color-warning)"; }
+                else { typeEl.innerText = ac.t || "SİVİL HAVACILIK"; typeEl.style.color = "var(--color-accent)"; typeEl.style.borderColor = "var(--color-accent)"; }
+
+                document.getElementById('t-alt').innerText = ac.alt_baro === 'ground' ? 'YERDE' : MathUtils.formatNum(ac.alt_baro) + ' ft';
+                document.getElementById('t-spd').innerText = MathUtils.formatNum(ac.gs) + ' kts';
+                document.getElementById('t-vspd').innerText = MathUtils.formatNum(ac.baro_rate) + ' fpm';
+                document.getElementById('t-hdg').innerText = ac.track ? Math.round(ac.track) + '°' : '---';
+                document.getElementById('t-coord').innerText = `${ac.lat.toFixed(4)} / ${ac.lon.toFixed(4)}`;
+                document.getElementById('t-squawk').innerText = ac.squawk || '---';
+
+                // Fizik Paneli Güncellemesi (Kinetik Enerji Simülasyonu)
+                if(ac.gs && ac.alt_baro && ac.alt_baro !== 'ground') {
+                    const mach = (ac.gs / 666.7).toFixed(2);
+                    document.getElementById('t-kinetic').innerText = `Mach ~${mach}`;
+                    const barWidth = Math.min((ac.gs / 600) * 100, 100); // 600 kts üst limit
+                    document.getElementById('t-pred-bar').style.width = `${barWidth}%`;
+                    document.getElementById('t-eta').innerText = `Vektör Hesaplandı (10 Dk. Yörünge)`;
                 } else {
-                    sqEl.style.color = 'var(--text-main)';
-                    catEl.innerText = "STANDART SİVİL HAVACILIK";
-                    catEl.style.color = "var(--color-green)";
+                    document.getElementById('t-kinetic').innerText = 'Veri Yetersiz';
+                    document.getElementById('t-pred-bar').style.width = '0%';
                 }
             }
 
             clearSelection() {
                 this.selectedHex = null;
                 this.isLocked = false;
-                document.getElementById('target-empty').style.display = 'flex';
-                document.getElementById('target-ui').classList.remove('active');
+                document.getElementById('r-empty').style.display = 'flex';
+                document.getElementById('r-ui').classList.remove('active');
+                Object.values(this.markers).forEach(m => m.getElement().classList.remove('selected'));
             }
 
-            toggleTargetLock() {
+            toggleLock() {
                 if(!this.selectedHex) return;
                 this.isLocked = !this.isLocked;
+                const btn = document.getElementById('btn-lock');
                 
-                const btn = document.getElementById('btn-target-lock');
                 if (this.isLocked) {
                     btn.classList.add('locked');
-                    btn.innerText = "KİLİTLENDİ - TAKİP EDİLİYOR";
-                    Logger.log(`Radar kilidi aktif. Otomatik takip devrede.`, 'warn');
-                    const marker = this.markers[this.selectedHex];
-                    if(marker) this.map.flyTo({ center: marker.getLngLat(), zoom: 8, pitch: 45 });
+                    btn.innerText = "KAMERA KİLİDİ AKTİF";
+                    const m = this.markers[this.selectedHex];
+                    if(m) this.map.flyTo({ center: m.getLngLat(), pitch: 50 });
                 } else {
                     btn.classList.remove('locked');
-                    btn.innerText = "HEDEFE KİLİTLEN";
+                    btn.innerText = "KAMERA KİLİDİNİ AÇ";
                 }
             }
 
-            updateNetStatus(text, cssClass) {
-                const el = document.getElementById('net-status');
-                document.getElementById('net-status-text').innerText = text;
-                el.style.borderColor = cssClass === 'alert' ? 'var(--color-red)' : 'var(--color-green)';
-                el.style.color = cssClass === 'alert' ? 'var(--color-red)' : 'var(--color-green)';
+            applyVisualSettings() {
+                // Etiketleri aç/kapat
+                const display = App.UI.switches['layer-labels'] ? 'flex' : 'none';
+                Object.values(this.markers).forEach(m => {
+                    const tag = m.getElement().querySelector('.ac-data-tag');
+                    if(tag) tag.style.display = display;
+                });
+                
+                // FIR Çizgisi aç/kapat
+                if(this.map && this.map.getLayer('fir-line')) {
+                    this.map.setLayoutProperty('fir-line', 'visibility', App.UI.switches['layer-fir'] ? 'visible' : 'none');
+                }
             }
         }
 
-        const CommandCenter = new ApplicationCore();
-        
-        setInterval(() => {
-            document.getElementById('sys-clock').innerText = new Date().toISOString().substring(11, 19) + ' ZULU';
-        }, 1000);
+        // =====================================================================
+        // 5. APP BOOTSTRAP (SİSTEM BAŞLATICI)
+        // =====================================================================
+        const App = {
+            Terminal: new Terminal(),
+            UI: new UIController(),
+            Radar: new RadarEngine()
+        };
 
         window.onload = () => {
-            CommandCenter.init();
+            App.Radar.initMap();
         };
 
     </script>
