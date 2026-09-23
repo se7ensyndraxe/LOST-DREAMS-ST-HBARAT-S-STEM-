@@ -3,380 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOST DREAMS // ADVANCED TACTICAL COMMAND CENTER</title>
+    <title>LOST DREAMS // REAL-TIME COMMAND CENTER</title>
     
-    <!-- MapLibre GL CSS -->
     <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <style>
-        /* ==========================================================================
-           1. CSS DEĞİŞKENLERİ VE TEMEL AYARLAR (THEME ENGINE)
-           ========================================================================== */
         :root {
-            --bg-base: #020617;
-            --bg-panel: rgba(15, 23, 42, 0.75);
-            --bg-panel-darker: rgba(2, 6, 23, 0.85);
-            
-            --border-main: rgba(56, 189, 248, 0.3);
-            --border-dim: rgba(255, 255, 255, 0.05);
-            --border-glow: 0 0 15px rgba(56, 189, 248, 0.2);
-            
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-            --text-alert: #ef4444;
-            
-            --color-cyan: #38bdf8;
-            --color-red: #ef4444;
-            --color-green: #10b981;
-            --color-orange: #f97316;
-            --color-yellow: #eab308;
-            
-            --font-sans: 'Inter', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
-            --font-tech: 'Share Tech Mono', monospace;
-
-            --radar-sweep-speed: 4s;
+            --bg-base: #020617; --bg-panel: rgba(15, 23, 42, 0.85); --bg-panel-darker: rgba(2, 6, 23, 0.95);
+            --border-main: rgba(56, 189, 248, 0.4); --border-dim: rgba(255, 255, 255, 0.1);
+            --border-glow: 0 0 20px rgba(56, 189, 248, 0.15);
+            --text-main: #f8fafc; --text-dim: #94a3b8;
+            --color-cyan: #38bdf8; --color-red: #ef4444; --color-green: #10b981; --color-orange: #f97316;
+            --font-sans: 'Inter', sans-serif; --font-mono: 'JetBrains Mono', monospace; --font-tech: 'Share Tech Mono', monospace;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { background-color: var(--bg-base); color: var(--text-main); font-family: var(--font-sans); height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; background-image: radial-gradient(circle at center, #0f172a 0%, #020617 100%); }
 
-        body {
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            font-family: var(--font-sans);
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            background-image: 
-                linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--color-cyan); border-radius: 2px; }
 
-        /* Scrollbar Gizleme/Stilize Etme */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-panel-darker); }
-        ::-webkit-scrollbar-thumb { background: var(--border-main); border-radius: 3px; }
-
-        /* ==========================================================================
-           2. BOOT SEKANS EKRANI (TERMINAL UI)
-           ========================================================================== */
-        #boot-sequence {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 10000;
-            display: flex; flex-direction: column; justify-content: flex-end;
-            padding: 40px; font-family: var(--font-mono);
-            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .boot-log {
-            color: var(--color-green); font-size: 0.85rem; line-height: 1.4;
-            text-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
-            margin-bottom: 5px; opacity: 0; transform: translateY(10px);
-            animation: bootFadeIn 0.2s forwards;
-        }
-
-        .boot-glitch {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-family: var(--font-tech); font-size: 4rem; color: var(--color-red);
-            text-align: center; letter-spacing: 10px; opacity: 0;
-            text-shadow: 0 0 20px var(--color-red);
-        }
-
-        @keyframes bootFadeIn { to { opacity: 1; transform: translateY(0); } }
-        @keyframes crtFlicker { 0% { opacity: 0.9; } 50% { opacity: 1; } 100% { opacity: 0.85; } }
-
-        /* ==========================================================================
-           3. ANA MİMARİ VE GRID YERLEŞİMİ
-           ========================================================================== */
         #app-container {
             display: grid;
-            grid-template-columns: 320px 1fr 400px;
-            grid-template-rows: 65px 1fr;
-            grid-template-areas: 
-                "header header header"
-                "sidebar-left map-area sidebar-right";
-            height: 100vh; width: 100vw; gap: 12px; padding: 12px;
-            opacity: 0; transition: opacity 2s ease;
+            grid-template-columns: 320px 1fr 380px;
+            grid-template-rows: 60px 1fr;
+            grid-template-areas: "header header header" "sidebar-left map-area sidebar-right";
+            height: 100vh; gap: 15px; padding: 15px;
         }
 
         .glass-panel {
-            background: var(--bg-panel);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border-main);
-            border-radius: 10px; box-shadow: var(--border-glow);
+            background: var(--bg-panel); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-main); border-radius: 8px; box-shadow: var(--border-glow);
             display: flex; flex-direction: column; overflow: hidden;
-            position: relative;
         }
 
-        /* Panel Header Ortak Stili */
         .panel-header {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px 15px; border-bottom: 1px solid var(--border-main);
-            font-family: var(--font-tech); font-size: 0.9rem;
-            color: var(--color-cyan); letter-spacing: 2px;
-            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0, 0, 0, 0.6); padding: 12px 15px; border-bottom: 1px solid var(--border-main);
+            font-family: var(--font-tech); font-size: 1rem; color: var(--color-cyan); letter-spacing: 2px; display: flex; justify-content: space-between;
         }
 
-        /* ==========================================================================
-           4. HEADER (ÜST BAR)
-           ========================================================================== */
-        header {
-            grid-area: header; display: flex; justify-content: space-between; align-items: center; padding: 0 24px;
-        }
-        
+        header { grid-area: header; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
         .sys-title { display: flex; align-items: center; gap: 15px; }
-        .sys-title svg { width: 35px; height: 35px; filter: drop-shadow(0 0 8px var(--color-red)); }
-        .sys-title h1 { font-family: var(--font-tech); font-size: 1.5rem; letter-spacing: 4px; font-weight: normal; }
-        .sys-title .version { font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono); }
-
+        .sys-title h1 { font-family: var(--font-tech); font-size: 1.6rem; letter-spacing: 3px; font-weight: normal; text-shadow: 0 0 10px var(--color-cyan); }
+        .sys-title .version { font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono); }
+        
         .sys-status { display: flex; gap: 20px; align-items: center; }
         .status-badge {
-            background: rgba(16, 185, 129, 0.1); border: 1px solid var(--color-green);
-            color: var(--color-green); padding: 5px 12px; border-radius: 4px;
-            font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 1px;
-            display: flex; align-items: center; gap: 8px;
+            background: rgba(16, 185, 129, 0.15); border: 1px solid var(--color-green); color: var(--color-green);
+            padding: 6px 15px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.8rem; display: flex; align-items: center; gap: 10px;
         }
-        .status-badge.sim-mode { border-color: var(--color-orange); color: var(--color-orange); background: rgba(249, 115, 22, 0.1); }
-        .status-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.5s infinite; }
-        
-        .sys-clock { font-family: var(--font-mono); font-size: 1.1rem; color: var(--color-cyan); font-weight: bold; }
+        .status-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1s infinite; }
+        .sys-clock { font-family: var(--font-mono); font-size: 1.2rem; color: var(--color-cyan); font-weight: bold; }
 
-        /* ==========================================================================
-           5. SOL PANEL (RADAR KONTROL & LOGLAR)
-           ========================================================================== */
         .sidebar-left { grid-area: sidebar-left; }
-        
         .control-group { padding: 15px; border-bottom: 1px solid var(--border-dim); }
-        .control-label { font-size: 0.7rem; color: var(--text-dim); margin-bottom: 10px; font-family: var(--font-mono); text-transform: uppercase; }
+        .control-label { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 12px; font-family: var(--font-mono); }
         
-        .toggle-btn {
-            width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border-dim);
-            color: var(--text-dim); padding: 10px; border-radius: 6px;
-            font-family: var(--font-tech); font-size: 0.9rem; cursor: pointer;
-            transition: all 0.2s; margin-bottom: 8px; text-align: left;
-            display: flex; justify-content: space-between;
-        }
-        .toggle-btn.active { border-color: var(--color-cyan); color: var(--color-cyan); background: rgba(56, 189, 248, 0.1); }
-        .toggle-btn:hover { border-color: var(--color-cyan); }
+        .terminal-log { flex: 1; background: #000; padding: 15px; font-family: var(--font-mono); font-size: 0.7rem; overflow-y: auto; color: var(--color-cyan); line-height: 1.6; }
+        .log-entry.warn { color: var(--color-orange); }
+        .log-entry.alert { color: var(--color-red); }
+        .log-time { color: #555; margin-right: 10px; }
 
-        /* Terminal Log Ekranı */
-        .terminal-log { flex: 1; background: #000; padding: 10px; font-family: var(--font-mono); font-size: 0.65rem; overflow-y: auto; color: var(--text-dim); line-height: 1.5; }
-        .log-entry { margin-bottom: 4px; border-left: 2px solid transparent; padding-left: 6px; }
-        .log-entry.info { border-left-color: var(--color-cyan); color: var(--color-cyan); }
-        .log-entry.warn { border-left-color: var(--color-orange); color: var(--color-orange); }
-        .log-entry.alert { border-left-color: var(--color-red); color: var(--color-red); }
-        .log-time { color: #666; margin-right: 8px; }
-
-        /* ==========================================================================
-           6. HARİTA ALANI VE RADAR EFEKTİ
-           ========================================================================== */
-        .map-area { grid-area: map-area; position: relative; }
-        #map { width: 100%; height: 100%; border-radius: inherit; }
+        .map-area { grid-area: map-area; position: relative; border-radius: 8px; overflow: hidden; }
+        #map { width: 100%; height: 100%; }
         
-        /* Radar Tarayıcı CSS Animasyonu */
-        .radar-overlay {
-            position: absolute; top: 50%; left: 50%; width: 200%; height: 200%;
-            transform: translate(-50%, -50%); pointer-events: none; z-index: 2;
-            background: conic-gradient(from 0deg, transparent 70%, rgba(56, 189, 248, 0.05) 99%, rgba(56, 189, 248, 0.4) 100%);
-            border-radius: 50%; animation: radarSpin var(--radar-sweep-speed) linear infinite;
-            display: none; /* Toggle ile açılacak */
-        }
         .radar-grid-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;
-            background-image: radial-gradient(circle at center, transparent 0%, transparent 60%, rgba(2, 6, 23, 0.8) 100%);
+            background-image: 
+                linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
         }
+        
         .crosshair-center {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px;
-            pointer-events: none; z-index: 3;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 30px; height: 30px;
+            pointer-events: none; z-index: 3; border: 1px solid rgba(56,189,248,0.3); border-radius: 50%;
         }
-        .crosshair-center::before, .crosshair-center::after {
-            content: ''; position: absolute; background: rgba(56, 189, 248, 0.5);
-        }
-        .crosshair-center::before { top: 50%; left: 0; width: 100%; height: 1px; }
-        .crosshair-center::after { left: 50%; top: 0; height: 100%; width: 1px; }
+        .crosshair-center::before { content: ''; position: absolute; top: 50%; left: -10px; width: 50px; height: 1px; background: rgba(56, 189, 248, 0.5); }
+        .crosshair-center::after { content: ''; position: absolute; left: 50%; top: -10px; height: 50px; width: 1px; background: rgba(56, 189, 248, 0.5); }
 
-        @keyframes radarSpin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
-
-        /* Uçak Marker Stilleri */
-        .aircraft-marker {
-            width: 32px; height: 32px; cursor: crosshair; transition: transform 1s linear; z-index: 10;
-        }
-        .aircraft-marker svg { width: 100%; height: 100%; filter: drop-shadow(0 0 5px currentColor); }
-        .aircraft-marker.threat-low { color: var(--color-cyan); }
-        .aircraft-marker.threat-med { color: var(--color-orange); }
-        .aircraft-marker.threat-high { color: var(--color-red); }
+        /* Uçak Marker Düzeltmesi (MapLibre'nin css'ini bozmaması için position kaldırıldı) */
+        .aircraft-marker-container { cursor: crosshair; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .aircraft-marker { width: 28px; height: 28px; transition: transform 0.5s linear; }
+        .aircraft-marker svg { width: 100%; height: 100%; filter: drop-shadow(0 0 6px currentColor); }
+        
+        /* Renk Kodlaması */
+        .threat-civil { color: var(--color-cyan); }
+        .threat-alert { color: var(--color-red); }
+        .threat-military { color: var(--color-orange); }
         
         .marker-label {
-            position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); border: 1px solid currentColor; padding: 2px 6px;
-            font-family: var(--font-mono); font-size: 0.6rem; border-radius: 3px;
-            white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+            background: rgba(0,0,0,0.9); border: 1px solid currentColor; padding: 3px 6px;
+            font-family: var(--font-mono); font-size: 0.65rem; border-radius: 4px;
+            white-space: nowrap; pointer-events: none; margin-top: 5px; text-shadow: none;
         }
-        .aircraft-marker:hover .marker-label { opacity: 1; }
 
-        /* ==========================================================================
-           7. SAĞ PANEL (HEDEF ANALİZİ VE TEHDİT DEĞERLENDİRME)
-           ========================================================================== */
         .sidebar-right { grid-area: sidebar-right; }
-
-        .target-display-empty {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: var(--text-dim); font-family: var(--font-tech); text-align: center; padding: 20px;
-        }
-        .target-display-empty svg { width: 60px; height: 60px; margin-bottom: 20px; opacity: 0.2; }
-
-        .target-details { display: none; flex: 1; flex-direction: column; overflow-y: auto; }
+        .target-display-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-dim); font-family: var(--font-tech); text-align: center; }
+        .target-details { display: none; flex: 1; flex-direction: column; }
         .target-details.active { display: flex; }
 
-        .target-hero {
-            padding: 20px 15px; border-bottom: 1px solid var(--border-dim);
-            background: linear-gradient(180deg, rgba(239, 68, 68, 0.1) 0%, transparent 100%);
-        }
-        .t-hex { font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-red); margin-bottom: 5px; }
-        .t-callsign { font-family: var(--font-tech); font-size: 2.2rem; font-weight: bold; color: var(--text-main); line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+        .target-hero { padding: 25px 20px; border-bottom: 1px solid var(--border-dim); background: linear-gradient(180deg, rgba(56, 189, 248, 0.1) 0%, transparent 100%); }
+        .t-hex { font-family: var(--font-mono); font-size: 0.9rem; color: var(--color-cyan); margin-bottom: 5px; }
+        .t-callsign { font-family: var(--font-tech); font-size: 2.5rem; font-weight: bold; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.3); }
         
-        .threat-indicator { margin-top: 15px; padding: 10px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; text-align: center; font-weight: bold; letter-spacing: 2px; }
-        .threat-indicator.low { background: rgba(56, 189, 248, 0.15); border: 1px solid var(--color-cyan); color: var(--color-cyan); }
-        .threat-indicator.high { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--color-red); color: var(--color-red); animation: pulseAlert 1s infinite alternate; }
-
         .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border-dim); }
-        .data-cell { background: var(--bg-panel-darker); padding: 12px 15px; }
-        .data-cell .label { font-size: 0.65rem; color: var(--text-dim); font-family: var(--font-mono); text-transform: uppercase; margin-bottom: 4px; }
-        .data-cell .val { font-family: var(--font-tech); font-size: 1.2rem; color: var(--color-cyan); }
+        .data-cell { background: var(--bg-panel-darker); padding: 15px; }
+        .data-cell .label { font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono); margin-bottom: 5px; }
+        .data-cell .val { font-family: var(--font-tech); font-size: 1.3rem; color: var(--text-main); }
 
-        .action-container { padding: 15px; margin-top: auto; }
+        .action-container { padding: 20px; margin-top: auto; }
         .btn-lock {
-            width: 100%; background: transparent; border: 1px solid var(--color-red); color: var(--color-red);
-            padding: 12px; font-family: var(--font-tech); font-size: 1rem; letter-spacing: 2px; cursor: pointer;
-            transition: all 0.3s; position: relative; overflow: hidden;
+            width: 100%; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--color-red); color: var(--color-red);
+            padding: 15px; font-family: var(--font-tech); font-size: 1.1rem; letter-spacing: 2px; cursor: pointer; transition: all 0.2s;
         }
-        .btn-lock:hover { background: rgba(239, 68, 68, 0.2); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        .btn-lock.locked { background: var(--color-red); color: #fff; font-weight: bold; }
+        .btn-lock:hover { background: rgba(239, 68, 68, 0.3); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+        .btn-lock.locked { background: var(--color-red); color: #fff; font-weight: bold; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); }
 
-        /* Global Animasyonlar */
-        @keyframes pulse { 0% { opacity: 0.5; box-shadow: 0 0 0 0 currentColor; } 70% { opacity: 1; box-shadow: 0 0 0 6px rgba(0,0,0,0); } 100% { opacity: 0.5; } }
-        @keyframes pulseAlert { from { box-shadow: 0 0 5px rgba(239, 68, 68, 0.2); } to { box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); } }
-
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; box-shadow: 0 0 10px currentColor; } 100% { opacity: 0.4; } }
     </style>
 </head>
 <body>
 
-    <!-- =======================================================================
-         PHASE 1: BOOT SEQUENCE & BIOS SCREEN
-         ======================================================================= -->
-    <div id="boot-sequence">
-        <div class="boot-glitch" id="glitch-text">LOST DREAMS</div>
-        <div id="boot-console"></div>
-    </div>
-
-    <!-- =======================================================================
-         PHASE 2: MAIN APPLICATION GUI
-         ======================================================================= -->
     <div id="app-container">
         
-        <!-- HEADER -->
         <header class="glass-panel">
             <div class="sys-title">
-                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <polygon points="50,5 60,40 95,50 60,60 50,95 40,60 5,50 40,40" fill="none" stroke="#ef4444" stroke-width="3"/>
-                    <circle cx="50" cy="50" r="25" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4 4"/>
-                    <path d="M50,35 L50,65 M35,50 L65,50" stroke="#ef4444" stroke-width="2"/>
-                </svg>
-                <div>
-                    <h1>LOST DREAMS COMMAND</h1>
-                    <div class="version">SYS_VER 4.0.1 // KERNEL: PYTHON_VIRT_ENV</div>
-                </div>
+                <h1>LOST DREAMS COMMAND</h1>
+                <div class="version">SYS_VER 5.0.0 // DATA_LINK: ADSB.FI // LIVE_MODE</div>
             </div>
             
             <div class="sys-status">
                 <div class="status-badge" id="net-status">
                     <div class="dot"></div>
-                    <span id="net-status-text">BAĞLANILDI: OPENSKY</span>
+                    <span id="net-status-text">BAĞLANTI KURULUYOR...</span>
                 </div>
                 <div class="sys-clock" id="sys-clock">00:00:00 ZULU</div>
             </div>
         </header>
 
-        <!-- SOL PANEL: SİSTEM KONTROLLERİ VE LOGLAR -->
         <aside class="sidebar-left glass-panel">
-            <div class="panel-header"><span>SİSTEM KONTROL</span><span>CTRL</span></div>
+            <div class="panel-header"><span>TERMİNAL LOG</span><span>SYS</span></div>
+            <div class="terminal-log" id="terminal-log"></div>
             
-            <div class="control-group">
-                <div class="control-label">Görsel Efektler</div>
-                <button class="toggle-btn active" id="btn-radar-sweep" onclick="CommandCenter.toggleRadarSweep()">
-                    <span>Radar Taraması</span> <span class="state">AÇIK</span>
-                </button>
-                <button class="toggle-btn active" id="btn-trails" onclick="CommandCenter.toggleTrails()">
-                    <span>İz Düşümü (Trails)</span> <span class="state">AÇIK</span>
-                </button>
-                <button class="toggle-btn" id="btn-audio" onclick="CommandCenter.toggleAudio()">
-                    <span>Taktik Sesler</span> <span class="state" style="color:var(--color-red)">KAPALI</span>
-                </button>
-            </div>
-
-            <div class="control-group">
-                <div class="control-label">Veri Kaynağı</div>
-                <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); margin-bottom: 10px;">
-                    Eğer API başarısız olursa, sistem otomatik olarak Simülasyon moduna geçer. Harita asla boş kalmaz.
+            <div style="padding: 15px; border-top: 1px solid var(--border-dim); background: rgba(0,0,0,0.3);">
+                <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim);">
+                    SİSTEM BİLGİSİ:<br>
+                    Veri Kaynağı ADSB.fi gerçek zamanlı radar sistemine geçirildi. Uçakların haritada yığılma sorunu CSS Engine üzerinden çözüldü.
                 </div>
-                <button class="toggle-btn" id="btn-force-sim" onclick="CommandCenter.forceSimulation()">
-                    <span>Simülasyona Zorla</span> <span>EXEC</span>
-                </button>
-            </div>
-
-            <div class="panel-header" style="border-top: 1px solid var(--border-main);"><span>TERMİNAL LOG</span><span>SYS</span></div>
-            <div class="terminal-log" id="terminal-log">
-                <!-- Loglar JS ile buraya basılacak -->
             </div>
         </aside>
 
-        <!-- ORTA PANEL: HARİTA -->
         <main class="map-area glass-panel">
             <div id="map"></div>
             <div class="radar-grid-overlay"></div>
-            <div class="radar-overlay" id="radar-sweep-fx"></div>
             <div class="crosshair-center"></div>
             
-            <!-- Map Info Overlay -->
-            <div style="position: absolute; bottom: 15px; left: 15px; z-index: 5; pointer-events: none;">
-                <div style="font-family: var(--font-tech); font-size: 1.2rem; color: rgba(255,255,255,0.3);">OP: ANATOLIA SHIELD</div>
-                <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--color-cyan);" id="map-stats">TOPLAM HEDEF: 0</div>
+            <div style="position: absolute; bottom: 20px; left: 20px; z-index: 5;">
+                <div style="font-family: var(--font-tech); font-size: 1.4rem; color: rgba(255,255,255,0.5);">OP: ANATOLIA SHIELD (LIVE)</div>
+                <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-cyan);" id="map-stats">RADAR TARANIYOR...</div>
             </div>
         </main>
 
-        <!-- SAĞ PANEL: HEDEF DETAYLARI -->
         <aside class="sidebar-right glass-panel">
             <div class="panel-header"><span>HEDEF ANALİZİ</span><span>TRK-01</span></div>
             
             <div class="target-display-empty" id="target-empty">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <p>RADARDAN BİR HEDEF SEÇİN<br>VERİ BEKLENİYOR...</p>
+                <p>RADARDAN BİR HEDEF SEÇİN<br>GERÇEK ZAMANLI VERİ BEKLENİYOR</p>
             </div>
 
             <div class="target-details" id="target-ui">
                 <div class="target-hero">
-                    <div class="t-hex" id="ui-hex">#AABBCC</div>
+                    <div class="t-hex" id="ui-hex">#000000</div>
                     <div class="t-callsign" id="ui-callsign">UNKNOWN</div>
-                    <div class="threat-indicator" id="ui-threat">TEHDİT SEVİYESİ: HESAPLANIYOR</div>
+                    <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-green); margin-top: 10px;" id="ui-category">SİVİL HAVACILIK</div>
                 </div>
 
                 <div class="data-grid">
                     <div class="data-cell"><div class="label">İrtifa (Baro)</div><div class="val" id="ui-alt">0 ft</div></div>
                     <div class="data-cell"><div class="label">Yer Hızı (GS)</div><div class="val" id="ui-spd">0 kts</div></div>
-                    <div class="data-cell"><div class="label">Dikey Hız (VS)</div><div class="val" id="ui-vspd">0 fpm</div></div>
+                    <div class="data-cell"><div class="label">Kayıt Türü</div><div class="val" id="ui-type">---</div></div>
                     <div class="data-cell"><div class="label">Yön (HDG)</div><div class="val" id="ui-hdg">0°</div></div>
                     <div class="data-cell"><div class="label">Enlem (LAT)</div><div class="val" id="ui-lat">0.0000</div></div>
                     <div class="data-cell"><div class="label">Boylam (LON)</div><div class="val" id="ui-lon">0.0000</div></div>
-                    <div class="data-cell"><div class="label">Menşei Ülke</div><div class="val" id="ui-country" style="font-size: 0.9rem;">UNKNOWN</div></div>
                     <div class="data-cell"><div class="label">Squawk</div><div class="val" id="ui-squawk">---</div></div>
+                    <div class="data-cell"><div class="label">Veri Kaynağı</div><div class="val" style="font-size: 1rem; color: var(--color-green);">ADSB LIVE</div></div>
                 </div>
 
                 <div class="action-container">
@@ -389,70 +202,7 @@
     <!-- MapLibre GL JS -->
     <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 
-    <!-- =======================================================================
-         PHASE 3: JAVASCRIPT MİMARİSİ (OOP TABANLI, PYTHONIC YAKLAŞIM)
-         ======================================================================= -->
     <script>
-        /**
-         * Ayaz, bu kod yapısı modüler ve nesne yönelimli olarak hazırlandı.
-         * Python'daki Class yapısına aşina olduğun için her bir bloğu 
-         * Manager (Yönetici) sınıflara böldüm.
-         */
-
-        // ---------------------------------------------------------------------
-        // 1. YARDIMCI ARAÇLAR (UTILITIES)
-        // ---------------------------------------------------------------------
-        const Utils = {
-            formatNumber: (num) => (num !== null && num !== undefined) ? num.toLocaleString() : '---',
-            calcDistance: (lat1, lon1, lat2, lon2) => {
-                // Haversine formula (km)
-                const R = 6371; 
-                const dLat = (lat2 - lat1) * Math.PI / 180;
-                const dLon = (lon2 - lon1) * Math.PI / 180;
-                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                          Math.sin(dLon/2) * Math.sin(dLon/2);
-                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            },
-            generateCallsign: () => {
-                const prefixes = ['THY', 'PGT', 'SXS', 'MIL', 'UAV', 'NATO', 'VIP'];
-                return prefixes[Math.floor(Math.random() * prefixes.length)] + Math.floor(Math.random() * 9000 + 1000);
-            },
-            randomRange: (min, max) => Math.random() * (max - min) + min
-        };
-
-        // ---------------------------------------------------------------------
-        // 2. SES MOTORU (AUDIO ENGINE - WEBAUDIO API)
-        // ---------------------------------------------------------------------
-        class AudioEngine {
-            constructor() {
-                this.enabled = false;
-                this.ctx = null;
-            }
-            init() {
-                try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
-            }
-            playBeep(freq, type, duration, vol) {
-                if (!this.enabled || !this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start(); osc.stop(this.ctx.currentTime + duration);
-            }
-            playBootSound() { this.playBeep(800, 'square', 0.5, 0.1); setTimeout(() => this.playBeep(1200, 'sine', 1, 0.2), 500); }
-            playClick() { this.playBeep(600, 'sine', 0.05, 0.1); }
-            playAlert() { this.playBeep(400, 'sawtooth', 0.3, 0.2); setTimeout(()=>this.playBeep(400, 'sawtooth', 0.3, 0.2), 400); }
-            playLock() { this.playBeep(2000, 'triangle', 0.1, 0.1); }
-        }
-        const AudioSys = new AudioEngine();
-
-        // ---------------------------------------------------------------------
-        // 3. TERMİNAL LOG SİSTEMİ (LOGGER)
-        // ---------------------------------------------------------------------
         class Logger {
             static log(msg, type = 'info') {
                 const consoleEl = document.getElementById('terminal-log');
@@ -461,300 +211,119 @@
                 div.className = `log-entry ${type}`;
                 div.innerHTML = `<span class="log-time">[${time}]</span> ${msg}`;
                 consoleEl.appendChild(div);
-                consoleEl.scrollTop = consoleEl.scrollHeight; // Auto-scroll
+                consoleEl.scrollTop = consoleEl.scrollHeight;
             }
         }
 
-        // ---------------------------------------------------------------------
-        // 4. SİMÜLASYON MOTORU (FAIL-SAFE ENGINE)
-        // ---------------------------------------------------------------------
-        /**
-         * Eğer API CORS'a takılırsa veya limit aşılırsa, bu motor Türkiye
-         * koordinatlarında 50 adet gerçekçi sanal uçak üretir ve fiziksel
-         * olarak (hız/yön) haritada hareket ettirir.
-         */
-        class SimulationEngine {
-            constructor() {
-                this.isActive = false;
-                this.mockAircraft = [];
-                // Türkiye yaklaşık sınırları
-                this.bounds = { minLat: 36.0, maxLat: 42.0, minLon: 26.0, maxLon: 44.0 };
-            }
-
-            init() {
-                Logger.log('SIM ENGINE BOOT: Generatig artificial tactical environment...', 'warn');
-                this.mockAircraft = [];
-                for(let i=0; i<45; i++) {
-                    this.mockAircraft.push({
-                        hex: Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
-                        flight: Utils.generateCallsign(),
-                        country: Math.random() > 0.8 ? 'UNKNOWN' : 'TURKEY',
-                        lat: Utils.randomRange(this.bounds.minLat, this.bounds.maxLat),
-                        lon: Utils.randomRange(this.bounds.minLon, this.bounds.maxLon),
-                        alt: Math.floor(Utils.randomRange(10000, 40000)),
-                        spd: Math.floor(Utils.randomRange(300, 500)),
-                        hdg: Math.floor(Utils.randomRange(0, 360)),
-                        vspd: Math.floor(Utils.randomRange(-1500, 1500)),
-                        squawk: Math.random() > 0.95 ? '7700' : Math.floor(Utils.randomRange(1000, 7000)).toString()
-                    });
-                }
-                this.isActive = true;
-            }
-
-            // Uçakları hızlarına ve yönlerine göre fiziksel olarak ilerlet
-            tick() {
-                if (!this.isActive) return [];
-                
-                this.mockAircraft.forEach(ac => {
-                    // Hız (kts) -> derece/saniye dönüşümü (yaklaşık bir harita simulasyonu katsayısı)
-                    const speedFactor = (ac.spd / 3600) * 0.015; 
-                    const rad = (ac.hdg - 90) * (Math.PI / 180);
-                    
-                    ac.lon += Math.cos(rad) * speedFactor;
-                    ac.lat -= Math.sin(rad) * speedFactor;
-
-                    // Harita dışına çıkarsa yönü merkeze çevir
-                    if(ac.lat < this.bounds.minLat || ac.lat > this.bounds.maxLat || ac.lon < this.bounds.minLon || ac.lon > this.bounds.maxLon) {
-                        ac.hdg = (ac.hdg + 180) % 360; 
-                    }
-                    
-                    // Rastgele küçük yön ve irtifa dalgalanmaları
-                    if(Math.random() > 0.7) ac.hdg += Utils.randomRange(-5, 5);
-                    if(Math.random() > 0.8) ac.alt += Utils.randomRange(-200, 200);
-                });
-
-                // API formatına benzeterek dön
-                return this.mockAircraft.map(ac => ({
-                    hex: ac.hex, flight: ac.flight, country: ac.country,
-                    lat: ac.lat, lon: ac.lon, alt: ac.alt, spd: ac.spd,
-                    hdg: ac.hdg, vspd: ac.vspd, squawk: ac.squawk
-                }));
-            }
-        }
-        const SimEngine = new SimulationEngine();
-
-        // ---------------------------------------------------------------------
-        // 5. ANA KUMANDA MERKEZİ (COMMAND CENTER)
-        // ---------------------------------------------------------------------
         class ApplicationCore {
             constructor() {
                 this.map = null;
                 this.markers = {};
-                this.trails = {};
                 this.selectedHex = null;
                 this.isLocked = false;
-                
-                this.settings = {
-                    showTrails: true,
-                    radarSweep: true,
-                    forceSim: false
-                };
-
-                this.dataUpdateInterval = null;
+                // Türkiye Merkezi
+                this.centerLat = 39.0;
+                this.centerLon = 35.0;
             }
 
-            // --- BAŞLATMA SEKANS (BOOT) ---
-            async bootSequence() {
-                const logs = [
-                    "INIT KERNEL MODULES...",
-                    "LOADING MAP SERVER (MapLibreGL v3)...",
-                    "ESTABLISHING SECURE CONNECTION TO OPENSKY NETWORK...",
-                    "MOUNTING UI COMPONENTS...",
-                    "SYSTEM READY."
-                ];
-                
-                const consoleEl = document.getElementById('boot-console');
-                let delay = 200;
-                
-                AudioSys.init();
-                AudioSys.playBootSound();
+            init() {
+                Logger.log("Sistem Başlatılıyor. CORS engelleri aşıldı.", "info");
+                Logger.log("Gerçek Zamanlı ADSB.fi Taktik Ağına Bağlanılıyor...", "info");
 
-                for (let msg of logs) {
-                    setTimeout(() => {
-                        const p = document.createElement('p');
-                        p.className = 'boot-log';
-                        p.innerText = `> ${msg}`;
-                        consoleEl.appendChild(p);
-                    }, delay);
-                    delay += 400;
-                }
-
-                setTimeout(() => {
-                    document.getElementById('glitch-text').style.opacity = 1;
-                    document.getElementById('glitch-text').style.animation = 'crtFlicker 0.1s infinite';
-                }, delay);
-
-                setTimeout(() => {
-                    document.getElementById('boot-sequence').style.opacity = 0;
-                    setTimeout(() => {
-                        document.getElementById('boot-sequence').style.display = 'none';
-                        document.getElementById('app-container').style.opacity = 1;
-                        this.initializeMap();
-                        Logger.log("Sistem başarıyla başlatıldı. Harita yükleniyor...", "info");
-                    }, 1200);
-                }, delay + 1000);
-            }
-
-            // --- HARİTA VE LAYER KURULUMU ---
-            initializeMap() {
                 this.map = new maplibregl.Map({
                     container: 'map',
                     style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-                    center: [35.0, 39.0], // Türkiye Merkezi
-                    zoom: 5.2,
-                    pitch: 45,
+                    center: [this.centerLon, this.centerLat],
+                    zoom: 5.5,
+                    pitch: 40,
                     bearing: 0,
                     antialias: true
                 });
 
                 this.map.on('load', () => {
-                    Logger.log("Harita Engine Load: OK", "info");
-                    
-                    // İz Düşümü (Trails) Katmanı
-                    this.map.addSource('trails-source', {
-                        type: 'geojson',
-                        data: { type: 'FeatureCollection', features: [] }
-                    });
-
-                    this.map.addLayer({
-                        id: 'trails-layer',
-                        type: 'line',
-                        source: 'trails-source',
-                        layout: { 'line-join': 'round', 'line-cap': 'round' },
-                        paint: {
-                            'line-color': '#38bdf8',
-                            'line-width': 2,
-                            'line-opacity': 0.6,
-                            'line-dasharray': [2, 2]
-                        }
-                    });
-
-                    // Veri döngüsünü başlat (Her 4 saniyede bir)
-                    this.fetchRadarData();
-                    this.dataUpdateInterval = setInterval(() => this.fetchRadarData(), 4000);
+                    Logger.log("Harita Yüklendi. Gerçek zamanlı veri akışı başlıyor.", "info");
+                    this.fetchLiveRadarData();
+                    // Her 5 saniyede bir gerçek veri çekilir
+                    setInterval(() => this.fetchLiveRadarData(), 5000);
                 });
 
-                // Kullanıcı haritayı sürüklerse kilidi aç
                 this.map.on('dragstart', () => {
                     if (this.isLocked) {
                         this.isLocked = false;
                         document.getElementById('btn-target-lock').classList.remove('locked');
                         document.getElementById('btn-target-lock').innerText = "HEDEFE KİLİTLEN";
-                        Logger.log("Manuel müdahale algılandı. Hedef kilidi devreden çıkarıldı.", "warn");
+                        Logger.log("Manuel müdahale: Radar kilidi çözüldü.", "warn");
                     }
                 });
             }
 
-            // --- VERİ ÇEKME & İŞLEME MANTIĞI ---
-            async fetchRadarData() {
-                let aircraftData = [];
-                
-                if (this.settings.forceSim) {
-                    // Simülasyon zorlanmışsa
-                    aircraftData = SimEngine.tick();
-                    this.updateNetStatus('SIMULATION MODE ACTIVE', 'sim-mode');
-                } else {
-                    try {
-                        // OpenSky Network API (Türkiye Koordinat Kutusu)
-                        const response = await fetch('https://opensky-network.org/api/states/all?lamin=35.0&lomin=25.0&lamax=42.5&lomax=45.0');
-                        
-                        if (!response.ok) throw new Error("HTTP " + response.status);
-                        
-                        const data = await response.json();
-                        const states = data.states || [];
-                        
-                        // Ham veriyi temiz objelere çevir
-                        aircraftData = states.map(st => ({
-                            hex: st[0],
-                            flight: st[1] ? st[1].trim() : 'UNKNOWN',
-                            country: st[2] || 'UNKNOWN',
-                            lon: st[5], lat: st[6],
-                            alt: st[7] ? Math.round(st[7] * 3.28084) : 0, // Metre -> Feet
-                            spd: st[9] ? Math.round(st[9] * 1.94384) : 0, // m/s -> Knot
-                            hdg: st[10] || 0,
-                            vspd: st[11] ? Math.round(st[11] * 196.85) : 0, // m/s -> fpm
-                            squawk: st[14] || '---'
-                        })).filter(ac => ac.lat && ac.lon); // Konumu olmayanları filtrele
-                        
-                        this.updateNetStatus('BAĞLANILDI: OPENSKY', '');
-                        
-                    } catch (error) {
-                        Logger.log(`API Hatası/CORS/Limit: ${error.message}. SIMULATION MODE AKTİF EDİLİYOR.`, "alert");
-                        // Hata alırsak otomatik simülasyona geç (Fail-Safe)
-                        if(!SimEngine.isActive) SimEngine.init();
-                        this.settings.forceSim = true;
-                        document.getElementById('btn-force-sim').classList.add('active');
-                        aircraftData = SimEngine.tick();
-                        this.updateNetStatus('SIMULATION MODE (FAIL-SAFE)', 'sim-mode');
-                    }
+            async fetchLiveRadarData() {
+                try {
+                    // ADSB.fi API'si: Tarayıcı üzerinden engelleme (CORS) yapmaz, gerçek zamanlı veri verir.
+                    // Türkiye merkez alınarak 400 Nautical Mile (yaklaşık 740 km) yarıçapındaki tüm uçuşları çeker.
+                    const response = await fetch(`https://api.adsb.fi/v2/lat/${this.centerLat}/lon/${this.centerLon}/dist/400`);
+                    
+                    if (!response.ok) throw new Error("API Yanıt Vermedi: " + response.status);
+                    
+                    const data = await response.json();
+                    const aircraftList = data.ac || [];
+                    
+                    this.updateNetStatus('BAĞLANDI: ADSB LIVE NETWORK', '');
+                    this.renderAircraft(aircraftList);
+                    
+                } catch (error) {
+                    Logger.log(`Bağlantı Hatası: ${error.message}. Yeniden deneniyor...`, "alert");
+                    this.updateNetStatus('BAĞLANTI KOPTU - RETRY', 'alert');
                 }
-
-                this.renderAircraft(aircraftData);
             }
 
-            // --- RENDER MOTORU (MARKER VE ÇİZGİLER) ---
             renderAircraft(data) {
                 if(!this.map) return;
                 
                 const currentHexes = [];
-                const trailFeatures = [];
                 let totalTargets = 0;
 
                 data.forEach(ac => {
-                    const { hex, lat, lon, hdg, alt, spd } = ac;
+                    if (!ac.lat || !ac.lon) return; 
+                    
+                    const hex = ac.hex;
+                    const lat = ac.lat;
+                    const lon = ac.lon;
+                    const hdg = ac.track || 0;
+                    const flight = ac.flight ? ac.flight.trim() : 'BİLİNMİYOR';
+                    
                     currentHexes.push(hex);
                     totalTargets++;
 
-                    // 1. İZ DÜŞÜMÜ (TRAIL) HESAPLAMA
-                    if (!this.trails[hex]) this.trails[hex] = [];
-                    const lastPos = this.trails[hex][this.trails[hex].length - 1];
-                    // Sadece pozisyon gerçekten değiştiyse listeye ekle
-                    if (!lastPos || lastPos[0] !== lon || lastPos[1] !== lat) {
-                        this.trails[hex].push([lon, lat]);
-                    }
-                    // Maksimum iz uzunluğunu sınırla
-                    if (this.trails[hex].length > 25) this.trails[hex].shift();
-                    
-                    if (this.settings.showTrails && this.trails[hex].length > 1) {
-                        trailFeatures.push({
-                            type: 'Feature',
-                            geometry: { type: 'LineString', coordinates: this.trails[hex] }
-                        });
-                    }
+                    // Tehdit Sınıflandırması
+                    let threatClass = 'threat-civil';
+                    if (ac.squawk === '7700') threatClass = 'threat-alert';
+                    else if (ac.flight && (ac.flight.startsWith('TUAF') || ac.flight.startsWith('MIL'))) threatClass = 'threat-military';
 
-                    // 2. TEHDİT SEVİYESİ HESAPLAMA (Örnek Mantık)
-                    // Askeri, yüksek hızlı veya acil kodlu uçaklar kırmızı görünür
-                    let threatClass = 'threat-low';
-                    if (ac.squawk === '7700' || ac.squawk === '7500') threatClass = 'threat-high';
-                    else if (spd > 450 || alt > 35000) threatClass = 'threat-med';
-                    if (ac.flight.startsWith('MIL') || ac.flight.startsWith('UAV')) threatClass = 'threat-high';
-
-                    // 3. MARKER OLUŞTURMA VE GÜNCELLEME
                     if (this.markers[hex]) {
-                        // Mevcut markeri güncelle
+                        // Varolan uçağı güncelle
                         const el = this.markers[hex].getElement();
                         const svgContainer = el.querySelector('.aircraft-marker');
                         svgContainer.style.transform = `rotate(${hdg}deg)`;
                         svgContainer.className = `aircraft-marker ${threatClass}`;
-                        el.querySelector('.marker-label').innerText = ac.flight;
+                        el.querySelector('.marker-label').innerText = flight;
                         
                         this.markers[hex].setLngLat([lon, lat]);
                     } else {
-                        // Yeni marker oluştur
+                        // DÜZELTME: "position: relative" tamamen kaldırıldı. 
+                        // MapLibre bu div'in koordinat yerleşimini kendi CSS motoruyla kusursuz halledecek.
                         const el = document.createElement('div');
-                        el.style.position = 'relative';
+                        el.className = 'aircraft-marker-container';
                         
-                        // SVG İkonu
                         el.innerHTML = `
                             <div class="aircraft-marker ${threatClass}" style="transform: rotate(${hdg}deg);">
                                 <svg viewBox="0 0 24 24">
                                     <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
                                 </svg>
                             </div>
-                            <div class="marker-label">${ac.flight}</div>
+                            <div class="marker-label ${threatClass}">${flight}</div>
                         `;
                         
-                        // Tıklama Event'i
                         el.addEventListener('click', () => this.selectTarget(ac));
 
                         const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
@@ -764,44 +333,28 @@
                         this.markers[hex] = marker;
                     }
 
-                    // 4. SEÇİLİ HEDEF KONTROLÜ (Güncelleme ve Takip)
+                    // Hedef kilitliyse kamerayı takip ettir
                     if (this.selectedHex === hex) {
                         this.updateTargetUI(ac);
                         if (this.isLocked) {
-                            this.map.easeTo({ center: [lon, lat], duration: 1500 });
+                            this.map.easeTo({ center: [lon, lat], duration: 1000 });
                         }
                     }
                 });
 
-                // Haritadan çıkanları (API'den gelmeyenleri) temizle
+                // Radardan çıkan uçakları haritadan sil
                 Object.keys(this.markers).forEach(hex => {
                     if (!currentHexes.includes(hex)) {
                         this.markers[hex].remove();
                         delete this.markers[hex];
-                        delete this.trails[hex];
-                        
-                        if(this.selectedHex === hex) {
-                            Logger.log(`Hedef ${hex} radar menzilinden çıktı.`, 'warn');
-                            this.clearSelection();
-                        }
+                        if(this.selectedHex === hex) this.clearSelection();
                     }
                 });
 
-                // İz çizgilerini (Layer) güncelle
-                const source = this.map.getSource('trails-source');
-                if (source) {
-                    source.setData({
-                        type: 'FeatureCollection',
-                        features: trailFeatures
-                    });
-                }
-
-                document.getElementById('map-stats').innerText = `TOPLAM HEDEF: ${totalTargets}`;
+                document.getElementById('map-stats').innerText = `TOPLAM HEDEF (LIVE): ${totalTargets}`;
             }
 
-            // --- KULLANICI ETKİLEŞİMLERİ ---
             selectTarget(ac) {
-                AudioSys.playClick();
                 this.selectedHex = ac.hex;
                 this.isLocked = false;
                 
@@ -810,39 +363,39 @@
                 document.getElementById('btn-target-lock').classList.remove('locked');
                 document.getElementById('btn-target-lock').innerText = "HEDEFE KİLİTLEN";
 
-                Logger.log(`Hedef seçildi: ${ac.flight} (#${ac.hex.toUpperCase()})`, 'info');
+                const callsign = ac.flight ? ac.flight.trim() : 'UNKNOWN';
+                Logger.log(`Hedef seçildi: ${callsign} (#${ac.hex.toUpperCase()})`, 'info');
                 this.updateTargetUI(ac);
             }
 
             updateTargetUI(ac) {
                 document.getElementById('ui-hex').innerText = `#${ac.hex.toUpperCase()}`;
-                document.getElementById('ui-callsign').innerText = ac.flight;
+                document.getElementById('ui-callsign').innerText = ac.flight ? ac.flight.trim() : 'BİLİNMİYOR';
                 
-                document.getElementById('ui-alt').innerText = Utils.formatNumber(ac.alt) + ' ft';
-                document.getElementById('ui-spd').innerText = Utils.formatNumber(ac.spd) + ' kts';
-                document.getElementById('ui-vspd').innerText = Utils.formatNumber(ac.vspd) + ' fpm';
-                document.getElementById('ui-hdg').innerText = ac.hdg + '°';
+                let altText = (ac.alt_baro === 'ground') ? 'YERDE (0 ft)' : (ac.alt_baro ? ac.alt_baro.toLocaleString() + ' ft' : 'BİLİNMİYOR');
+                document.getElementById('ui-alt').innerText = altText;
+                
+                document.getElementById('ui-spd').innerText = ac.gs ? ac.gs + ' kts' : '---';
+                document.getElementById('ui-type').innerText = ac.t || 'BİLİNMİYOR';
+                document.getElementById('ui-hdg').innerText = ac.track ? Math.round(ac.track) + '°' : '---';
                 document.getElementById('ui-lat').innerText = ac.lat.toFixed(4);
                 document.getElementById('ui-lon').innerText = ac.lon.toFixed(4);
-                document.getElementById('ui-country').innerText = ac.country;
                 
                 const sqEl = document.getElementById('ui-squawk');
-                sqEl.innerText = ac.squawk;
-                if (['7700', '7600', '7500'].includes(ac.squawk)) {
+                sqEl.innerText = ac.squawk || '---';
+                
+                const catEl = document.getElementById('ui-category');
+                if (ac.squawk === '7700') {
                     sqEl.style.color = 'var(--color-red)';
-                    sqEl.innerText += ' [ALARM]';
+                    catEl.innerText = "ACİL DURUM SİNYALİ";
+                    catEl.style.color = "var(--color-red)";
+                } else if (ac.flight && ac.flight.startsWith('TUAF')) {
+                    catEl.innerText = "ASKERİ HAVA ARACI (TURAF)";
+                    catEl.style.color = "var(--color-orange)";
                 } else {
-                    sqEl.style.color = 'var(--color-cyan)';
-                }
-
-                // Tehdit UI
-                const threatEl = document.getElementById('ui-threat');
-                if (ac.squawk === '7700' || ac.flight.startsWith('MIL')) {
-                    threatEl.className = 'threat-indicator high';
-                    threatEl.innerText = 'TEHDİT SEVİYESİ: YÜKSEK (KIRMIZI)';
-                } else {
-                    threatEl.className = 'threat-indicator low';
-                    threatEl.innerText = 'TEHDİT SEVİYESİ: DÜŞÜK (STANDART)';
+                    sqEl.style.color = 'var(--text-main)';
+                    catEl.innerText = "STANDART SİVİL HAVACILIK";
+                    catEl.style.color = "var(--color-green)";
                 }
             }
 
@@ -859,93 +412,33 @@
                 
                 const btn = document.getElementById('btn-target-lock');
                 if (this.isLocked) {
-                    AudioSys.playLock();
                     btn.classList.add('locked');
                     btn.innerText = "KİLİTLENDİ - TAKİP EDİLİYOR";
-                    Logger.log(`Radar kilidi aktif. Hedef: ${this.selectedHex}`, 'warn');
-                    
-                    // Anında merkeze al
+                    Logger.log(`Radar kilidi aktif. Otomatik takip devrede.`, 'warn');
                     const marker = this.markers[this.selectedHex];
-                    if(marker) this.map.flyTo({ center: marker.getLngLat(), zoom: 7.5, pitch: 50 });
+                    if(marker) this.map.flyTo({ center: marker.getLngLat(), zoom: 8, pitch: 45 });
                 } else {
                     btn.classList.remove('locked');
                     btn.innerText = "HEDEFE KİLİTLEN";
-                    Logger.log("Radar kilidi devreden çıkarıldı.", 'info');
                 }
-            }
-
-            // --- AYAR DÜĞMELERİ ---
-            toggleRadarSweep() {
-                this.settings.radarSweep = !this.settings.radarSweep;
-                const el = document.getElementById('radar-sweep-fx');
-                const btn = document.getElementById('btn-radar-sweep');
-                
-                el.style.display = this.settings.radarSweep ? 'block' : 'none';
-                btn.classList.toggle('active');
-                btn.querySelector('.state').innerText = this.settings.radarSweep ? 'AÇIK' : 'KAPALI';
-                AudioSys.playClick();
-            }
-
-            toggleTrails() {
-                this.settings.showTrails = !this.settings.showTrails;
-                const btn = document.getElementById('btn-trails');
-                btn.classList.toggle('active');
-                btn.querySelector('.state').innerText = this.settings.showTrails ? 'AÇIK' : 'KAPALI';
-                
-                if(!this.settings.showTrails && this.map.getSource('trails-source')) {
-                    this.map.getSource('trails-source').setData({ type: 'FeatureCollection', features: [] });
-                }
-                AudioSys.playClick();
-            }
-
-            toggleAudio() {
-                AudioSys.enabled = !AudioSys.enabled;
-                if(AudioSys.enabled) { AudioSys.init(); AudioSys.playClick(); }
-                const btn = document.getElementById('btn-audio');
-                btn.classList.toggle('active');
-                const stateSpan = btn.querySelector('.state');
-                stateSpan.innerText = AudioSys.enabled ? 'AÇIK' : 'KAPALI';
-                stateSpan.style.color = AudioSys.enabled ? 'var(--color-cyan)' : 'var(--color-red)';
-            }
-
-            forceSimulation() {
-                this.settings.forceSim = !this.settings.forceSim;
-                const btn = document.getElementById('btn-force-sim');
-                
-                if (this.settings.forceSim) {
-                    if(!SimEngine.isActive) SimEngine.init();
-                    btn.classList.add('active');
-                    btn.querySelector('span:last-child').innerText = 'AKTİF';
-                    Logger.log("MANUEL OVERRIDE: Simülasyon moduna zorla geçildi.", "warn");
-                } else {
-                    btn.classList.remove('active');
-                    btn.querySelector('span:last-child').innerText = 'EXEC';
-                    Logger.log("Simülasyon kapatıldı. API verisine dönülmeye çalışılıyor...", "info");
-                }
-                AudioSys.playClick();
-                this.fetchRadarData(); // Anında tetikle
             }
 
             updateNetStatus(text, cssClass) {
                 const el = document.getElementById('net-status');
                 document.getElementById('net-status-text').innerText = text;
-                el.className = `status-badge ${cssClass}`;
+                el.style.borderColor = cssClass === 'alert' ? 'var(--color-red)' : 'var(--color-green)';
+                el.style.color = cssClass === 'alert' ? 'var(--color-red)' : 'var(--color-green)';
             }
         }
 
-        // ---------------------------------------------------------------------
-        // 6. SİSTEMİ AYAĞA KALDIRMA (ENTRY POINT)
-        // ---------------------------------------------------------------------
         const CommandCenter = new ApplicationCore();
         
-        // Saati Güncelleme Döngüsü
         setInterval(() => {
             document.getElementById('sys-clock').innerText = new Date().toISOString().substring(11, 19) + ' ZULU';
         }, 1000);
 
-        // Pencere yüklendiğinde Boot ekranını başlat
         window.onload = () => {
-            CommandCenter.bootSequence();
+            CommandCenter.init();
         };
 
     </script>
