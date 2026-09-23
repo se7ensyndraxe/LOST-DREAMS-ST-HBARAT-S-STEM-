@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOST DREAMS // TACTICAL INTELLIGENCE & MILITARY RADAR</title>
+    <title>LOST DREAMS // ASKERİ VE TAKTİK RADAR İSTİHBARATI</title>
     
     <!-- MapLibre GL CSS -->
     <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
@@ -12,9 +12,9 @@
 
     <style>
         :root {
-            --bg-base: #020617; /* Slate 950 */
-            --panel-bg: rgba(15, 23, 42, 0.85); /* Slate 900 şeffaf */
-            --panel-border: rgba(56, 189, 248, 0.2); 
+            --bg-base: #020617;
+            --panel-bg: rgba(15, 23, 42, 0.85);
+            --panel-border: rgba(56, 189, 248, 0.2);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --accent-cyan: #38bdf8;
@@ -39,10 +39,11 @@
             flex-direction: column;
         }
 
+        /* Glassmorphism Paneller */
         .glass-panel {
             background: var(--panel-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border: 1px solid var(--panel-border);
             border-radius: 8px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
@@ -64,26 +65,30 @@
 
         .logo-container {
             position: relative;
-            width: 140px;
-            height: 140px;
+            width: 130px;
+            height: 130px;
             margin-bottom: 25px;
             animation: pulse-glow 3s infinite alternate;
         }
         
-        .logo-container svg { width: 100%; height: 100%; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.6)); }
+        .logo-container svg {
+            width: 100%; height: 100%;
+            filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.6));
+        }
 
         .boot-text {
             color: var(--accent-cyan);
             font-size: 1.6rem;
             letter-spacing: 4px;
             margin-bottom: 8px;
-            font-weight: bold;
+            font-weight: 700;
+            text-align: center;
         }
 
         .boot-subtext {
             color: var(--text-muted);
             font-size: 0.85rem;
-            margin-bottom: 35px;
+            margin-bottom: 30px;
             letter-spacing: 2px;
         }
 
@@ -115,7 +120,7 @@
             justify-content: space-between;
             align-items: center;
             z-index: 10;
-            margin: 10px 12px;
+            margin: 10px 12px 0 12px;
             border-radius: 10px;
         }
 
@@ -125,7 +130,10 @@
             gap: 12px;
         }
 
-        .header-logo-mini { width: 30px; height: 30px; }
+        .header-logo-mini {
+            width: 28px;
+            height: 28px;
+        }
 
         .header-title {
             font-weight: 700;
@@ -134,43 +142,55 @@
             color: var(--text-main);
         }
 
+        .badge-live {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            animation: blink 1.5s infinite;
+        }
+
         .header-controls {
             display: flex;
             gap: 12px;
             align-items: center;
         }
 
-        .filter-btn {
+        .icon-btn {
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid var(--panel-border);
-            color: var(--text-muted);
-            padding: 6px 14px;
+            color: var(--accent-cyan);
+            padding: 8px 14px;
             border-radius: 6px;
             font-family: var(--font-sans);
-            font-size: 0.82rem;
+            font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            transition: all 0.2s ease;
+            position: relative;
         }
 
-        .filter-btn.active {
+        .icon-btn:hover {
             border-color: var(--accent-cyan);
-            color: var(--accent-cyan);
             background: rgba(56, 189, 248, 0.15);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
         }
 
-        .news-btn-toggle {
-            background: rgba(249, 115, 22, 0.15);
-            border: 1px solid var(--accent-orange);
-            color: var(--accent-orange);
-            font-weight: 600;
-        }
-
-        .news-btn-toggle:hover {
-            background: rgba(249, 115, 22, 0.25);
-            box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
+        .news-badge-dot {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent-red);
+            border-radius: 50%;
+            border: 2px solid var(--bg-base);
+            display: none;
         }
 
         .time-display {
@@ -186,11 +206,12 @@
             flex: 1;
             position: relative;
             display: flex;
-            margin: 0 12px 12px 12px;
+            margin: 10px 12px 12px 12px;
             gap: 12px;
             overflow: hidden;
         }
 
+        /* Harita Konteyneri */
         .map-wrapper {
             flex: 1;
             position: relative;
@@ -199,23 +220,27 @@
             border: 1px solid var(--panel-border);
         }
 
-        #map { width: 100%; height: 100%; background: #000; }
+        #map {
+            width: 100%;
+            height: 100%;
+            background: #020617;
+        }
 
-        /* ----- SIDEBAR ----- */
+        /* ----- SIDEBAR (SAĞ PANEL) ----- */
         .sidebar {
             width: 380px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             z-index: 5;
         }
 
         .panel-header {
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-bottom: 1px solid var(--panel-border);
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 700;
-            color: var(--accent-cyan);
+            color: var(--text-muted);
             letter-spacing: 1px;
             text-transform: uppercase;
             display: flex;
@@ -223,25 +248,44 @@
             align-items: center;
         }
 
-        .stats-panel { padding: 14px; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        /* İstatistik Paneli */
+        .stats-panel {
+            padding: 12px;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
 
         .stat-box {
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
+            background: rgba(2, 6, 23, 0.5);
+            padding: 8px 10px;
             border-radius: 6px;
             border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .stat-label { font-size: 0.68rem; color: var(--text-muted); margin-bottom: 4px; }
-        .stat-value { font-family: var(--font-mono); font-size: 1.15rem; color: var(--accent-cyan); font-weight: bold; }
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
 
-        /* Hedef Detay Kartı */
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            color: var(--accent-cyan);
+            font-weight: bold;
+        }
+
+        /* Uçak Detay Kartı */
         .target-panel {
             flex: 1;
             display: flex;
             flex-direction: column;
-            opacity: 0.5;
+            opacity: 0.6;
             pointer-events: none;
             transition: all 0.3s ease;
             overflow: hidden;
@@ -250,17 +294,24 @@
         .target-panel.active {
             opacity: 1;
             pointer-events: auto;
-            border: 1px solid var(--accent-cyan);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+            border-color: var(--accent-red);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
         }
 
-        .target-content { padding: 14px; flex: 1; overflow-y: auto; }
+        .target-content {
+            padding: 14px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
         .target-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
+            align-items: flex-start;
+            margin-bottom: 10px;
             padding-bottom: 10px;
             border-bottom: 1px solid var(--panel-border);
         }
@@ -270,199 +321,210 @@
             font-size: 1.4rem;
             color: var(--accent-red);
             font-weight: bold;
+            line-height: 1.1;
         }
 
-        .target-type {
-            font-size: 0.8rem;
-            background: rgba(239, 68, 68, 0.12);
+        .target-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .target-type-badge {
+            font-size: 0.75rem;
+            background: rgba(239, 68, 68, 0.15);
             color: var(--accent-red);
             padding: 4px 8px;
             border-radius: 4px;
             border: 1px solid rgba(239, 68, 68, 0.3);
-            font-weight: 600;
+            font-family: var(--font-mono);
+            font-weight: bold;
+            white-space: nowrap;
         }
 
         .data-row {
             display: flex;
             justify-content: space-between;
-            padding: 7px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-            font-size: 0.82rem;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 0.8rem;
         }
         
-        .data-label { color: var(--text-muted); }
-        .data-val { font-family: var(--font-mono); color: var(--text-main); font-weight: 500; }
+        .data-label { color: var(--text-muted); font-size: 0.75rem; }
+        .data-val { font-family: var(--font-mono); color: var(--text-main); font-weight: 600; }
 
         .action-btn {
             width: 100%;
-            background: rgba(56, 189, 248, 0.12);
-            color: var(--accent-cyan);
-            border: 1px solid var(--accent-cyan);
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
             padding: 10px;
             border-radius: 6px;
-            margin-top: 14px;
+            margin-top: 10px;
             cursor: pointer;
-            font-family: var(--font-sans);
-            font-weight: 600;
+            font-family: var(--font-mono);
+            font-weight: 700;
             font-size: 0.85rem;
+            letter-spacing: 1px;
             transition: all 0.2s;
         }
         
-        .action-btn:hover {
-            background: rgba(56, 189, 248, 0.25);
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+        .action-btn:hover { 
+            background: rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
         }
 
-        /* ----- HABER & İSTİHBARAT ÇEKMECESİ (NEWS DRAWER) ----- */
-        #news-panel {
+        /* ----- CANLI İSTİHBARAT HABER PANELİ (DRAWER) ----- */
+        .news-drawer {
             position: absolute;
-            top: 0; right: -420px;
+            top: 0;
+            right: -420px;
             width: 400px;
             height: 100%;
-            z-index: 20;
-            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             flex-direction: column;
         }
 
-        #news-panel.open { right: 0; }
+        .news-drawer.open {
+            transform: translateX(-420px);
+        }
 
         .news-header {
-            padding: 14px 18px;
+            padding: 16px;
             border-bottom: 1px solid var(--panel-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(15, 23, 42, 0.95);
+            background: rgba(2, 6, 23, 0.8);
         }
 
         .news-title {
-            font-weight: 700;
-            color: var(--accent-orange);
-            font-size: 0.9rem;
-            letter-spacing: 1px;
+            font-family: var(--font-mono);
+            font-weight: bold;
+            color: var(--accent-cyan);
+            font-size: 1rem;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .close-btn {
+        .close-drawer-btn {
             background: transparent;
             border: none;
             color: var(--text-muted);
             font-size: 1.2rem;
             cursor: pointer;
+            padding: 4px;
         }
-        .close-btn:hover { color: var(--text-main); }
+
+        .close-drawer-btn:hover { color: var(--text-main); }
 
         .news-list {
             flex: 1;
-            padding: 14px;
             overflow-y: auto;
+            padding: 12px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .news-card {
             background: rgba(2, 6, 23, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-left: 4px solid var(--accent-cyan);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 6px;
             padding: 12px;
-            transition: transform 0.2s;
+            transition: border-color 0.2s;
         }
 
-        .news-card:hover { transform: translateX(-3px); }
+        .news-card:hover {
+            border-color: var(--panel-border);
+        }
 
-        .news-card.critical { border-left-color: var(--accent-red); background: rgba(239, 68, 68, 0.05); }
-        .news-card.high { border-left-color: var(--accent-orange); }
-        .news-card.medium { border-left-color: var(--accent-yellow); }
-
-        .news-meta {
+        .news-card-header {
             display: flex;
             justify-content: space-between;
-            font-size: 0.7rem;
+            align-items: center;
             margin-bottom: 6px;
         }
 
-        .news-badge {
-            font-family: var(--font-mono);
+        .priority-badge {
+            font-size: 0.65rem;
+            font-weight: bold;
             padding: 2px 6px;
             border-radius: 3px;
-            font-weight: bold;
-            font-size: 0.65rem;
+            font-family: var(--font-mono);
             text-transform: uppercase;
         }
 
-        .badge-critical { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.4); }
-        .badge-high { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); border: 1px solid rgba(249, 115, 22, 0.4); }
-        .badge-medium { background: rgba(234, 179, 8, 0.2); color: var(--accent-yellow); border: 1px solid rgba(234, 179, 8, 0.4); }
+        .priority-kritik { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.4); }
+        .priority-yuksek { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); border: 1px solid rgba(249, 115, 22, 0.4); }
+        .priority-orta { background: rgba(56, 189, 248, 0.2); color: var(--accent-cyan); border: 1px solid rgba(56, 189, 248, 0.4); }
 
-        .news-time { color: var(--text-muted); font-family: var(--font-mono); }
-        .news-headline { font-size: 0.88rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px; line-height: 1.3; }
-        .news-body { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
-
-        /* Yüzer Mesaj / Haber Tuşu */
-        .floating-news-btn {
-            position: absolute;
-            bottom: 24px;
-            right: 24px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--accent-orange);
-            color: #000;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.4rem;
-            box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
-            z-index: 15;
-            transition: all 0.3s ease;
+        .news-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
         }
 
-        .floating-news-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 30px rgba(249, 115, 22, 0.8);
+        .news-headline {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            line-height: 1.3;
         }
 
-        /* HARİTA MARKERLARI VE YÖNLENDİRME */
+        .news-body {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Marker & SVG Stilleri */
         .aircraft-marker {
-            width: 26px;
-            height: 26px;
-            transition: transform 0.8s linear;
+            width: 28px;
+            height: 28px;
             cursor: pointer;
-            filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.7));
+            filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.8));
+            transition: transform 0.8s linear;
         }
 
-        .aircraft-marker svg { width: 100%; height: 100%; fill: var(--accent-red); }
-        .aircraft-marker.uav svg { fill: var(--accent-cyan); filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.8)); }
+        .aircraft-marker svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--accent-red);
+        }
 
         .map-hint {
             position: absolute;
             bottom: 16px;
             left: 16px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(2, 6, 23, 0.75);
             color: var(--text-muted);
             padding: 6px 12px;
             border-radius: 4px;
             font-size: 0.75rem;
             z-index: 10;
+            border: 1px solid var(--panel-border);
             pointer-events: none;
-            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        ::-webkit-scrollbar { width: 5px; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        ::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 4px; }
 
         @keyframes pulse-glow {
             from { filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.3)); }
             to { filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.8)); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
     </style>
 </head>
@@ -472,86 +534,89 @@
     <div id="boot-screen">
         <div class="logo-container">
             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <polygon points="50,5 60,40 95,50 60,60 50,95 40,60 5,50 40,40" fill="none" stroke="#38bdf8" stroke-width="2"/>
-                <circle cx="50" cy="50" r="30" fill="none" stroke="#38bdf8" stroke-width="1" stroke-dasharray="4 4"/>
+                <polygon points="50,5 60,40 95,50 60,60 50,95 40,60 5,50 40,40" fill="none" stroke="#ef4444" stroke-width="2.5"/>
+                <circle cx="50" cy="50" r="32" fill="none" stroke="#38bdf8" stroke-width="1" stroke-dasharray="4 4"/>
                 <path d="M55,30 A20,20 0 1,0 55,70 A25,25 0 1,1 55,30 Z" fill="#ef4444"/>
                 <polygon points="65,42 68,48 75,48 69,52 71,58 65,54 59,58 61,52 55,48 62,48" fill="#ef4444"/>
             </svg>
         </div>
         <div class="boot-text">LOST DREAMS</div>
-        <div class="boot-subtext">ASKERİ HAVA TRAFİK & İHA/SİHA TAKTİK İZLEME</div>
-        <button class="start-btn" onclick="initSystem()">TAKİP SİSTEMİNİ BAŞLAT</button>
+        <div class="boot-subtext">ASKERİ HAVA TRAFİK VE TAKTİK İSTİHBARAT RADARI</div>
+        <button class="start-btn" onclick="initSystem()">SİSTEMİ BAŞLAT</button>
     </div>
 
-    <!-- ÜST BİLGİ (HEADER) -->
+    <!-- HEADER -->
     <header class="glass-panel">
         <div class="header-left">
             <svg class="header-logo-mini" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <polygon points="50,5 60,40 95,50 60,60 50,95 40,60 5,50 40,40" fill="none" stroke="#38bdf8" stroke-width="4"/>
+                <polygon points="50,5 60,40 95,50 60,60 50,95 40,60 5,50 40,40" fill="none" stroke="#ef4444" stroke-width="5"/>
             </svg>
-            <div class="header-title">LOST DREAMS // TACTICAL MILITARY RADAR</div>
+            <div class="header-title">LOST DREAMS TAKTİK AĞI</div>
+            <span class="badge-live">CANLI MİL-RADAR</span>
         </div>
         <div class="header-controls">
-            <button class="filter-btn news-btn-toggle" onclick="toggleNewsPanel()">💬 İSTİHBARAT BÜLTENİ</button>
-            <button class="filter-btn" id="btn-audio" onclick="toggleAudio()">🔊 SES AÇIK</button>
+            <!-- MESAJLAŞMA / CANLI HABER İSTİHBARAT BUTONU -->
+            <button class="icon-btn" id="btn-news-toggle" onclick="toggleNewsDrawer()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>İSTİHBARAT BÜLTENİ</span>
+                <span class="news-badge-dot" id="news-dot"></span>
+            </button>
+
+            <button class="icon-btn" id="btn-audio" onclick="toggleAudio()">
+                <span>🔊 SES AÇIK</span>
+            </button>
+
             <div class="time-display" id="sys-time">00:00:00 ZULU</div>
         </div>
     </header>
 
-    <!-- ANA ALAN -->
+    <!-- ANA EKRAN -->
     <div class="main-container">
         
         <!-- HARİTA -->
         <div class="map-wrapper glass-panel">
             <div id="map"></div>
-            <div class="map-hint">İpucu: Sağ Tık + Sürükle ile 3D Kamera Açısını ve Eğimini Ayarlayın</div>
-            
-            <!-- Yüzer Haber / Mesajlaşma Butonu -->
-            <button class="floating-news-btn" onclick="toggleNewsPanel()" title="İstihbarat Haberleri">💬</button>
+            <div class="map-hint">İpucu: Sağ Tık + Sürükle ile 3D Açı Ayarlayın | Rota Çizgileri Otomatik Oluşur</div>
         </div>
 
-        <!-- SAĞ PANEL -->
+        <!-- SAĞ SIDEBAR (DETAYLAR VE İSTATİSTİK) -->
         <div class="sidebar">
             
-            <!-- Sistem Durumu -->
             <div class="glass-panel stats-panel">
-                <div class="panel-header" style="padding:0 0 10px 0; border:none;">
-                    <span>ASKERİ RADAR VERİLERİ</span>
-                    <span style="font-size:0.65rem; color:var(--accent-green);">%100 CANLI</span>
+                <div class="panel-header" style="padding:0 0 8px 0; border:none;">
+                    <span>AKTİF HAVA TRAFİĞİ</span>
+                    <span style="color: var(--accent-red); font-size: 0.7rem;">(Sivil & Askeri)</span>
                 </div>
                 <div class="stat-grid">
                     <div class="stat-box">
-                        <div class="stat-label">TAKİP EDİLEN ASKERİ/İHA</div>
+                        <div class="stat-label">TOPLAM HEDEF</div>
                         <div class="stat-value" id="stat-count">0</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-label">SON TESPİT PING</div>
+                        <div class="stat-label">SON TEPKİ SÜRESİ</div>
                         <div class="stat-value" id="stat-ping">--</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Seçili Uçak Detay Kartı -->
+            <!-- SEÇİLİ UÇAK KARTI -->
             <div class="glass-panel target-panel" id="target-panel">
                 <div class="panel-header">
-                    <span>TAKTİK HEDEF KARTI</span>
-                    <span id="t-status" style="font-size:0.65rem; color:var(--text-muted);">BEKLENİYOR</span>
+                    <span>SEÇİLİ HEDEF DETAYLARI</span>
+                    <span id="target-hex" style="font-family: var(--font-mono); color: var(--text-muted);">#------</span>
                 </div>
                 <div class="target-content">
                     
                     <div class="target-header">
-                        <div class="target-callsign" id="t-callsign">HEDEF SEÇİLMEDİ</div>
-                        <div class="target-type" id="t-type">--</div>
+                        <div>
+                            <div class="target-callsign" id="t-callsign">HEDEF SEÇİLMEDİ</div>
+                            <div class="target-desc" id="t-desc">Haritadan bir hedef seçin</div>
+                        </div>
+                        <div class="target-type-badge" id="t-type">AIR-TARGET</div>
                     </div>
 
-                    <div class="data-row">
-                        <span class="data-label">UÇAK MODELİ / ICAO:</span>
-                        <span class="data-val" id="t-model">--</span>
-                    </div>
-                    <div class="data-row">
-                        <span class="data-label">OPERATÖR / ÜLKE:</span>
-                        <span class="data-val" id="t-operator">--</span>
-                    </div>
                     <div class="data-row">
                         <span class="data-label">İRTİFA (ALTITUDE):</span>
                         <span class="data-val" id="t-alt">--</span>
@@ -561,42 +626,48 @@
                         <span class="data-val" id="t-spd">--</span>
                     </div>
                     <div class="data-row">
-                        <span class="data-label">DİKEY HIZ (CLIMB/DESCENT):</span>
+                        <span class="data-label">DİKEY HIZ (V-SPEED):</span>
                         <span class="data-val" id="t-vspd">--</span>
                     </div>
                     <div class="data-row">
-                        <span class="data-label">ROTA AÇISI (HEADING):</span>
+                        <span class="data-label">YÖN (HEADING):</span>
                         <span class="data-val" id="t-hdg">--</span>
-                    </div>
-                    <div class="data-row">
-                        <span class="data-label">SQUAWK KODU:</span>
-                        <span class="data-val" id="t-squawk" style="color: var(--accent-cyan);">--</span>
                     </div>
                     <div class="data-row">
                         <span class="data-label">KOORDİNATLAR:</span>
                         <span class="data-val" id="t-coords">--</span>
                     </div>
                     <div class="data-row">
+                        <span class="data-label">SQUAWK (TRANSPONDER):</span>
+                        <span class="data-val" id="t-squawk" style="color: var(--accent-cyan);">--</span>
+                    </div>
+                    <div class="data-row">
                         <span class="data-label">ROTA İZ NOKTASI:</span>
-                        <span class="data-val" id="t-trail-count">0 Nokta</span>
+                        <span class="data-val" id="t-trail-count">--</span>
                     </div>
 
-                    <button class="action-btn" onclick="followTarget()">HEDEFE KİLİTLEN (CANLI TAKİP)</button>
+                    <button class="action-btn" onclick="followTarget()">HEDEFE KİLİTLEN VE TAKİP ET</button>
                 </div>
             </div>
 
         </div>
 
-        <!-- İSTİHBARAT & HABER ÇEKMECESİ -->
-        <div class="glass-panel" id="news-panel">
+        <!-- İSTİHBARAT BÜLTENİ / CANLI HABER PANELİ (DRAWER) -->
+        <div class="glass-panel news-drawer" id="news-drawer">
             <div class="news-header">
                 <div class="news-title">
-                    <span>📡 ANLIK İSTİHBARAT & HABER BÜLTENİ</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <span>ANLIK İSTİHBARAT BÜLTENİ</span>
                 </div>
-                <button class="close-btn" onclick="toggleNewsPanel()">✕</button>
+                <button class="close-drawer-btn" onclick="toggleNewsDrawer()">✕</button>
             </div>
-            <div class="news-list" id="news-list-container">
-                <!-- Haber kartları dinamik eklenecek -->
+            <div class="news-list" id="news-list">
+                <!-- Haberler Dinamik Olarak Buraya Eklenecek -->
             </div>
         </div>
 
@@ -608,52 +679,16 @@
     <script>
         // --- 1. SİSTEM DEĞİŞKENLERİ ---
         let map;
-        let aircraftMarkers = {}; // Ekranda çizili uçak ikonları
-        let aircraftHistory = {}; // Uçakların geçmiş rota koordinatları [ [lon, lat], ... ]
+        let aircraftMarkers = {}; 
+        let aircraftTrails = {}; 
         let audioEnabled = true;
         let selectedIcao = null;
         let isFollowing = false;
         let audioCtx;
 
-        // --- 2. CANLI İSTİHBARAT HABER VERİLERİ ---
-        const intelligenceNews = [
-            {
-                id: 1,
-                severity: 'critical',
-                time: '10:42 ZULU',
-                headline: 'Ege & Doğu Akdeniz Hava Sahasında İHA Devriyesi',
-                body: 'Bayraktar TB2 ve Akıncı TİHA üniteleri keşif ve gözetleme görevleri kapsamında belirlenen rotalarda devriye uçuşlarını sürdürüyor.'
-            },
-            {
-                id: 2,
-                severity: 'high',
-                time: '10:15 ZULU',
-                headline: 'NATO Lojistik Kargo İntikali',
-                body: 'A400M Atlas ve C-17 Globemaster askeri nakliye uçakları ana üsler arası lojistik transfer uçuşlarına devam ediyor.'
-            },
-            {
-                id: 3,
-                severity: 'medium',
-                time: '09:50 ZULU',
-                headline: 'Taktik Hava Tatbikatı & Devriye',
-                body: 'F-16 Fighting Falcon filoları önceden planlanmış bölgesel devriye ve hava savunma eğitim uçuşlarını gerçekleştirmektedir.'
-            },
-            {
-                id: 4,
-                severity: 'info',
-                time: '09:10 ZULU',
-                headline: 'ADS-B Askeri Veri Ağı Aktif',
-                body: 'Küresel askeri transponder veri ağı ve Mode-S sinyalleri %100 hassasiyetle taranıyor.'
-            }
-        ];
-
-        // --- 3. SES MOTORU ---
+        // --- 2. SES MOTORU ---
         function initAudio() {
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            } catch (e) {
-                console.warn("Ses motoru başlatılamadı.");
-            }
+            try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
         }
 
         function playSoftClick() {
@@ -665,10 +700,8 @@
             osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
             gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.04);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.04);
         }
 
         function playSonarPing() {
@@ -679,21 +712,18 @@
             osc.frequency.setValueAtTime(480, audioCtx.currentTime);
             gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 1.2);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 1.2);
         }
 
         function toggleAudio() {
             audioEnabled = !audioEnabled;
             const btn = document.getElementById('btn-audio');
-            btn.innerText = audioEnabled ? '🔊 SES AÇIK' : '🔇 SES KAPALI';
-            btn.style.color = audioEnabled ? 'var(--text-muted)' : 'var(--accent-red)';
+            btn.innerHTML = audioEnabled ? '<span>🔊 SES AÇIK</span>' : '<span style="color:var(--accent-red)">🔇 SES KAPALI</span>';
             if(audioEnabled) playSoftClick();
         }
 
-        // --- 4. ZAMAN & ARAYÜZ YARDIMCILARI ---
+        // --- 3. SAAT VE CANLI İSTİHBARAT BÜLTENİ ---
         function updateClock() {
             const now = new Date();
             document.getElementById('sys-time').innerText = now.toISOString().substring(11, 19) + ' ZULU';
@@ -701,42 +731,43 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        function toggleNewsPanel() {
-            playSoftClick();
-            const panel = document.getElementById('news-panel');
-            panel.classList.toggle('open');
-        }
+        const MOCK_NEWS = [
+            { priority: 'kritik', title: 'Doğu Akdeniz Taktik Keşif İHA Devriyesi', body: 'Bayraktar TB2 / Akıncı TİHA unsurları belirlenen S-12 sektöründe rutin radar ve keşif uçuşunu sürdürüyor.', time: 'AZ ÖNCE' },
+            { priority: 'yuksek', title: 'Ege Hava Sahası Önleme Görevi', body: '2 Adet F-16 Blk50+ savaş uçağı kalkış yaparak devriye rotasını güncelledi.', time: '4 DK ÖNCE' },
+            { priority: 'orta', title: 'A400M Lojistik Kargo İntikali', body: 'A400M Atlas askeri kargo uçağı ana jet üssünden lojistik intikal uçuşu icra ediyor.', time: '12 DK ÖNCE' },
+            { priority: 'yuksek', title: 'NATO AWACS Erken Uyarı Taraması', body: 'E-3A AWACS uçağı Karadeniz hava sahası sınırında sinyal istihbaratı icra ediyor.', time: '25 DK ÖNCE' }
+        ];
 
-        function renderNews() {
-            const container = document.getElementById('news-list-container');
+        function populateNews() {
+            const container = document.getElementById('news-list');
             container.innerHTML = '';
-            
-            intelligenceNews.forEach(item => {
+            MOCK_NEWS.forEach(item => {
                 const card = document.createElement('div');
-                card.className = `news-card ${item.severity}`;
-                
-                let badgeClass = 'badge-medium';
-                let badgeText = 'BİLGİ';
-                if(item.severity === 'critical') { badgeClass = 'badge-critical'; badgeText = 'KRİTİK'; }
-                if(item.severity === 'high') { badgeClass = 'badge-high'; badgeText = 'YÜKSEK'; }
-
+                card.className = 'news-card';
                 card.innerHTML = `
-                    <div class="news-meta">
-                        <span class="news-badge ${badgeClass}">${badgeText}</span>
+                    <div class="news-card-header">
+                        <span class="priority-badge priority-${item.priority}">${item.priority}</span>
                         <span class="news-time">${item.time}</span>
                     </div>
-                    <div class="news-headline">${item.headline}</div>
+                    <div class="news-headline">${item.title}</div>
                     <div class="news-body">${item.body}</div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // --- 5. SİSTEMİ BAŞLAT ---
+        function toggleNewsDrawer() {
+            playSoftClick();
+            const drawer = document.getElementById('news-drawer');
+            drawer.classList.toggle('open');
+            document.getElementById('news-dot').style.display = 'none';
+        }
+
+        // --- 4. SİSTEMİ BAŞLAT ---
         function initSystem() {
             initAudio();
             playSonarPing();
-            renderNews();
+            populateNews();
             
             const bootScreen = document.getElementById('boot-screen');
             bootScreen.style.opacity = '0';
@@ -748,12 +779,12 @@
             }, 800);
         }
 
-        // --- 6. HARİTA VE ROTA ÇİZGİ KATMANI (MapLibre GL) ---
+        // --- 5. HARİTA VE FLIGHTRADAR24 TARZI İZ ÇİZGİSİ KATMANI ---
         function initMap() {
             map = new maplibregl.Map({
                 container: 'map',
                 style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-                center: [32.8597, 39.9334], // Türkiye Merkez
+                center: [32.8597, 39.9334], 
                 zoom: 5.5,
                 pitch: 40,
                 bearing: -5,
@@ -763,42 +794,35 @@
             map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'bottom-left');
 
             map.on('load', () => {
-                // Rota çizgileri için GeoJSON kaynağı ekle
-                map.addSource('aircraft-trails', {
+                map.addSource('aircraft-trails-source', {
                     type: 'geojson',
-                    data: {
-                        type: 'FeatureCollection',
-                        features: []
-                    }
+                    data: { type: 'FeatureCollection', features: [] }
                 });
 
-                // Rota Çizgi Katmanı (Glow Efektli)
                 map.addLayer({
                     id: 'aircraft-trails-layer',
                     type: 'line',
-                    source: 'aircraft-trails',
-                    layout: {
-                        'line-join': 'round',
-                        'line-cap': 'round'
-                    },
+                    source: 'aircraft-trails-source',
+                    layout: { 'line-join': 'round', 'line-cap': 'round' },
                     paint: {
-                        'line-color': ['get', 'color'],
-                        'line-width': 2.5,
-                        'line-opacity': 0.85
+                        'line-color': '#ef4444',
+                        'line-width': 2,
+                        'line-opacity': 0.75,
+                        'line-dasharray': [2, 1]
                     }
                 });
 
                 fetchMilitaryData();
-                setInterval(fetchMilitaryData, 8000); // 8 saniyede bir güncelle
+                setInterval(fetchMilitaryData, 7000); 
             });
 
             map.on('dragstart', () => { isFollowing = false; });
         }
 
-        // --- UÇAK SVG İKONU ---
-        function createAircraftSVG(heading, isUAV) {
+        // --- SVG UÇAK İKONU ---
+        function createAircraftSVG(heading) {
             return `
-                <div class="aircraft-marker ${isUAV ? 'uav' : ''}" style="transform: rotate(${heading}deg);">
+                <div class="aircraft-marker" style="transform: rotate(${heading}deg);">
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
                     </svg>
@@ -806,108 +830,66 @@
             `;
         }
 
-        // --- 7. SADECE GERÇEK ASKERİ UÇAK VE İHA FİLTRELEME MOTORU ---
-        function isStrictMilitaryOrUAV(ac) {
-            const type = (ac.t || '').toUpperCase();
-            const flight = (ac.flight || '').toUpperCase();
-            const desc = (ac.desc || '').toUpperCase();
-            
-            // ADS-B DB Askeri Bayrağı (dbFlags & 1)
-            const isMilFlag = (ac.dbFlags !== undefined && (ac.dbFlags & 1) === 1);
-
-            // Bilinen Askeri Uçak & İHA ICAO Tip Kodları
-            const milTypesRegex = /^(TB2|ANKA|AKIN|KIZI|TB3|AKS|F16|F35|F4|F15|F18|A400|C130|C17|C30J|E7|E3TF|KC135|UH60|AH64|CH47|S70|T129|MQ9|RQ4|MQ1|A10|B52|B1|B2|P8|V22|EUFI|M2000|SU27|SU30|SU35|TU160|TU95|IL76|A332MRTT)/i;
-            
-            // Askeri Çağrı Kodları ve Filolar
-            const milCallsignRegex = /^(TUR|TUAF|HVKK|KKK|DZKK|BAYKAR|TAI|ASLAN|PARS|KAPLAN|SOLOTURK|REACH|NATO|FORTE|JAKE|RRC|LAGR|DUKE|VIPER|HAWK|CHOTU|RCH)/i;
-
-            const matchesType = milTypesRegex.test(type);
-            const matchesCallsign = milCallsignRegex.test(flight);
-            const matchesDesc = desc.includes('MILITARY') || desc.includes('NAVY') || desc.includes('AIR FORCE');
-
-            return isMilFlag || matchesType || matchesCallsign || matchesDesc;
-        }
-
-        // --- 8. GERÇEK ZAMANLI VERİ ÇEKİMİ (adsb.lol API) ---
+        // --- 6. CANLI HAVA TRAFİĞİ VERİSİ ---
         async function fetchMilitaryData() {
             if (!map) return;
-
+            
             try {
-                // Hem küresel hem bölgesel askeri verileri tara
-                const center = map.getCenter();
-                const response = await fetch(`https://api.adsb.lol/v2/point/${center.lat}/${center.lng}/300`);
+                // Türkiye ve çevresindeki (yaklaşık 500km çap) TÜM UÇAKLARI çeker
+                const response = await fetch('https://api.adsb.lol/v2/lat/39.9/lon/32.8/dist/500');
                 if (!response.ok) return;
 
                 const data = await response.json();
                 const acList = data.ac || [];
                 
-                let renderCount = 0;
-                const currentHexes = [];
+                const activeHexes = [];
                 const trailFeatures = [];
+                let milCount = 0;
 
                 acList.forEach(ac => {
-                    // Sıkı Filtreleme: Askeri veya İHA değilse KESİNLİKLE atla
-                    if (!isStrictMilitaryOrUAV(ac)) return;
-                    if (!ac.lat || !ac.lon) return;
-
                     const hex = ac.hex;
                     const lat = ac.lat;
                     const lon = ac.lon;
-                    const flight = ac.flight ? ac.flight.trim() : 'MIL-GHOST';
+                    if (!lat || !lon) return;
+
+                    const flight = ac.flight ? ac.flight.trim() : 'SİVİL/BİLİNMİYOR';
+                    const type = ac.t || 'BİLİNMİYOR';
+
+                    milCount++;
+                    activeHexes.push(hex);
+
                     const alt = ac.alt_baro === 'ground' ? 0 : (ac.alt_baro || 0);
                     const spd = ac.gs || 0;
-                    const vspd = ac.baro_rate || 0;
                     const hdg = ac.track || 0;
-                    const type = ac.t || 'ASKERİ';
-                    
-                    const isUAV = /^(TB2|ANKA|AKIN|KIZI|TB3|AKS|MQ9|RQ4|MQ1)/i.test(type) || flight.includes('BAYKAR');
+                    const vspd = ac.baro_rate || 0;
+                    const squawk = ac.squawk || 'N/A';
 
-                    currentHexes.push(hex);
-                    renderCount++;
-
-                    // --- ROTA ÇİZGİSİ (TRAIL) HESAPLAMA ---
-                    if (!aircraftHistory[hex]) {
-                        aircraftHistory[hex] = [];
-                    }
+                    if (!aircraftTrails[hex]) aircraftTrails[hex] = [];
                     
-                    // Son konumu ekle (Aynı nokta üst üste eklenmesin)
-                    const lastPos = aircraftHistory[hex][aircraftHistory[hex].length - 1];
+                    const lastPos = aircraftTrails[hex][aircraftTrails[hex].length - 1];
                     if (!lastPos || lastPos[0] !== lon || lastPos[1] !== lat) {
-                        aircraftHistory[hex].push([lon, lat]);
+                        aircraftTrails[hex].push([lon, lat]);
                     }
 
-                    // İz uzunluğunu maksimum 50 noktayla sınırla
-                    if (aircraftHistory[hex].length > 50) {
-                        aircraftHistory[hex].shift();
-                    }
+                    if (aircraftTrails[hex].length > 40) aircraftTrails[hex].shift();
 
-                    // GeoJSON Çizgi Katmanı Oluştur
-                    if (aircraftHistory[hex].length > 1) {
+                    if (aircraftTrails[hex].length > 1) {
                         trailFeatures.push({
                             type: 'Feature',
-                            properties: {
-                                color: isUAV ? '#38bdf8' : '#ef4444'
-                            },
-                            geometry: {
-                                type: 'LineString',
-                                coordinates: aircraftHistory[hex]
-                            }
+                            geometry: { type: 'LineString', coordinates: aircraftTrails[hex] }
                         });
                     }
 
-                    // --- HARİTA ÜZERİNDEKİ İKONLAR ---
                     if (aircraftMarkers[hex]) {
                         const el = aircraftMarkers[hex].getElement().firstChild;
-                        el.style.transform = `rotate(${hdg}deg)`;
+                        if (el) el.style.transform = `rotate(${hdg}deg)`;
                         aircraftMarkers[hex].setLngLat([lon, lat]);
                     } else {
                         const el = document.createElement('div');
-                        el.innerHTML = createAircraftSVG(hdg, isUAV);
-
-                        const aircraftData = { hex, flight, type, alt, spd, vspd, hdg, squawk: ac.squawk, lat, lon, isUAV };
+                        el.innerHTML = createAircraftSVG(hdg);
                         
                         el.addEventListener('click', () => {
-                            selectTarget(hex, aircraftData);
+                            selectTarget(hex, { hex, flight, type, alt, spd, hdg, vspd, squawk, lat, lon });
                         });
 
                         const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
@@ -917,45 +899,40 @@
                         aircraftMarkers[hex] = marker;
                     }
 
-                    // Seçili uçağı güncelle ve takip et
                     if (selectedIcao === hex) {
-                        const updatedData = { hex, flight, type, alt, spd, vspd, hdg, squawk: ac.squawk, lat, lon, isUAV };
-                        updateTargetPanel(updatedData);
+                        updateTargetPanel({ hex, flight, type, alt, spd, hdg, vspd, squawk, lat, lon });
                         if (isFollowing) {
                             map.easeTo({ center: [lon, lat], duration: 1000 });
                         }
                     }
                 });
 
-                // Haritadaki Rota Çizgilerini Güncelle
-                if (map.getSource('aircraft-trails')) {
-                    map.getSource('aircraft-trails').setData({
+                if (map.getSource('aircraft-trails-source')) {
+                    map.getSource('aircraft-trails-source').setData({
                         type: 'FeatureCollection',
                         features: trailFeatures
                     });
                 }
 
-                // Sinyali kesilen uçakları ve izlerini temizle
                 Object.keys(aircraftMarkers).forEach(hex => {
-                    if (!currentHexes.includes(hex)) {
+                    if (!activeHexes.includes(hex)) {
                         aircraftMarkers[hex].remove();
                         delete aircraftMarkers[hex];
-                        delete aircraftHistory[hex];
+                        delete aircraftTrails[hex];
                         if (selectedIcao === hex) clearSelection();
                     }
                 });
 
-                // İstatistik Paneli
-                document.getElementById('stat-count').innerText = renderCount;
+                document.getElementById('stat-count').innerText = milCount;
                 const d = new Date();
                 document.getElementById('stat-ping').innerText = d.getSeconds() + " sn önce";
 
             } catch (err) {
-                console.error("Askeri veri alma hatası:", err);
+                console.error("Veri alma hatası:", err);
             }
         }
 
-        // --- 9. HEDEF KARTI VE TAKİP YÖNETİMİ ---
+        // --- 7. DETAYLI KART YÖNETİMİ VE TAKİP ---
         function selectTarget(hex, data) {
             playSoftClick();
             selectedIcao = hex;
@@ -968,57 +945,45 @@
                 center: [data.lon, data.lat],
                 zoom: 8.5,
                 pitch: 55,
-                speed: 1.4
+                speed: 1.2
             });
 
             updateTargetPanel(data);
         }
 
         function updateTargetPanel(data) {
+            document.getElementById('target-hex').innerText = `#${data.hex.toUpperCase()}`;
             document.getElementById('t-callsign').innerText = data.flight;
-            document.getElementById('t-type').innerText = data.isUAV ? 'İHA / SİHA' : 'SAVAŞ / KARGO';
-            document.getElementById('t-status').innerText = 'TAKİPTE';
-            document.getElementById('t-status').style.color = 'var(--accent-green)';
-
-            const callsignEl = document.getElementById('t-callsign');
-            const typeEl = document.getElementById('t-type');
-
-            if (data.isUAV) {
-                callsignEl.style.color = 'var(--accent-cyan)';
-                typeEl.style.color = 'var(--accent-cyan)';
-                typeEl.style.backgroundColor = 'rgba(56, 189, 248, 0.12)';
-                typeEl.style.borderColor = 'rgba(56, 189, 248, 0.3)';
-            } else {
-                callsignEl.style.color = 'var(--accent-red)';
-                typeEl.style.color = 'var(--accent-red)';
-                typeEl.style.backgroundColor = 'rgba(239, 68, 68, 0.12)';
-                typeEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-            }
-
-            const altM = Math.round(data.alt * 0.3048);
+            document.getElementById('t-type').innerText = data.type;
+            
+            const altMeters = Math.round(data.alt * 0.3048);
             const spdKmh = Math.round(data.spd * 1.852);
 
-            document.getElementById('t-model').innerText = data.type || 'BİLİNMİYOR';
-            document.getElementById('t-operator').innerText = data.isUAV ? 'TÜRK HAVA KUVVETLERİ / KARA KUV.' : 'ASKERİ HAVA UNSURU';
-            document.getElementById('t-alt').innerText = `${data.alt.toLocaleString()} ft (${altM.toLocaleString()} m)`;
+            document.getElementById('t-alt').innerText = `${data.alt.toLocaleString()} ft (${altMeters.toLocaleString()} m)`;
             document.getElementById('t-spd').innerText = `${data.spd} kts (${spdKmh} km/h)`;
             document.getElementById('t-vspd').innerText = `${data.vspd} fpm`;
             document.getElementById('t-hdg').innerText = `${Math.round(data.hdg)}°`;
-            document.getElementById('t-squawk').innerText = data.squawk || 'GİZLİ';
             document.getElementById('t-coords').innerText = `${data.lat.toFixed(4)}, ${data.lon.toFixed(4)}`;
             
-            const trailLen = aircraftHistory[data.hex] ? aircraftHistory[data.hex].length : 0;
-            document.getElementById('t-trail-count').innerText = `${trailLen} İZ TESPİTİ`;
+            const squawkEl = document.getElementById('t-squawk');
+            squawkEl.innerText = data.squawk;
+            
+            if (['7700', '7600', '7500'].includes(data.squawk)) {
+                squawkEl.style.color = 'var(--accent-red)';
+                squawkEl.innerText += ' [ACİL DURUM]';
+            } else {
+                squawkEl.style.color = 'var(--accent-cyan)';
+            }
+
+            const trailCount = aircraftTrails[data.hex] ? aircraftTrails[data.hex].length : 0;
+            document.getElementById('t-trail-count').innerText = `${trailCount} İz Noktası Çizildi`;
         }
 
         function clearSelection() {
             selectedIcao = null;
             isFollowing = false;
-            const panel = document.getElementById('target-panel');
-            panel.classList.remove('active');
+            document.getElementById('target-panel').classList.remove('active');
             document.getElementById('t-callsign').innerText = "HEDEF SEÇİLMEDİ";
-            document.getElementById('t-status').innerText = "BEKLENİYOR";
-            document.getElementById('t-status').style.color = 'var(--text-muted)';
         }
 
         function followTarget() {
